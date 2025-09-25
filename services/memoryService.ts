@@ -37,17 +37,22 @@ export const addMemory = async (data: NewMemoryData): Promise<Memory> => {
   const mediaJson = JSON.stringify(media);
   const finalLocation = location && location.trim() ? location.trim() : null;
   
-  const { rows } = await sql`
-    INSERT INTO memories (date, title, description, "coverImageUrl", media, location)
-    VALUES (${date}, ${title}, ${description}, ${coverImageUrl}, ${mediaJson}::jsonb, ${finalLocation})
-    RETURNING id, date, title, description, "coverImageUrl", media, location;
-  `;
-  
-  const row = rows[0];
-  return {
-    ...row,
-    date: new Date(row.date).toISOString().split('T')[0]
-  } as Memory;
+  try {
+    const { rows } = await sql`
+      INSERT INTO memories (date, title, description, "coverImageUrl", media, location)
+      VALUES (${date}, ${title}, ${description}, ${coverImageUrl}, ${mediaJson}::jsonb, ${finalLocation})
+      RETURNING id, date, title, description, "coverImageUrl", media, location;
+    `;
+    
+    const row = rows[0];
+    return {
+      ...row,
+      date: new Date(row.date).toISOString().split('T')[0]
+    } as Memory;
+  } catch (error) {
+    console.error('Database Error (addMemory):', error);
+    throw new Error(`Error en la base de datos al añadir el recuerdo: ${(error as Error).message}`);
+  }
 };
 
 // The data type for update can include the ID and be partial
@@ -63,27 +68,31 @@ export const updateMemory = async (data: UpdateMemoryData): Promise<Memory | und
     ? (location.trim() ? location.trim() : null) 
     : undefined;
 
+  try {
+    const { rows } = await sql`
+      UPDATE memories
+      SET 
+        date = COALESCE(${date}, date), 
+        title = COALESCE(${title}, title), 
+        description = COALESCE(${description}, description), 
+        "coverImageUrl" = COALESCE(${coverImageUrl}, "coverImageUrl"), 
+        media = COALESCE(${mediaJson}::jsonb, media),
+        location = COALESCE(${finalLocation}, location)
+      WHERE id = ${id}
+      RETURNING id, date, title, description, "coverImageUrl", media, location;
+    `;
 
-  const { rows } = await sql`
-    UPDATE memories
-    SET 
-      date = COALESCE(${date}, date), 
-      title = COALESCE(${title}, title), 
-      description = COALESCE(${description}, description), 
-      "coverImageUrl" = COALESCE(${coverImageUrl}, "coverImageUrl"), 
-      media = COALESCE(${mediaJson}::jsonb, media),
-      location = COALESCE(${finalLocation}, location)
-    WHERE id = ${id}
-    RETURNING id, date, title, description, "coverImageUrl", media, location;
-  `;
+    if (rows.length === 0) return undefined;
 
-  if (rows.length === 0) return undefined;
-
-  const row = rows[0];
-  return {
-     ...row,
-    date: new Date(row.date).toISOString().split('T')[0]
-  } as Memory;
+    const row = rows[0];
+    return {
+       ...row,
+      date: new Date(row.date).toISOString().split('T')[0]
+    } as Memory;
+  } catch (error) {
+    console.error('Database Error (updateMemory):', error);
+    throw new Error(`Error en la base de datos al actualizar el recuerdo: ${(error as Error).message}`);
+  }
 };
 
 // Deletion is now handled by a secure server-side API route (/api/delete-memory.js)

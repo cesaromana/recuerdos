@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-// FIX: Using namespace import for react-router-dom to fix resolution errors.
-import * as ReactRouterDOM from 'react-router-dom';
+// FIX: Use named imports for react-router-dom to fix resolution errors.
+import { useParams, useNavigate } from 'react-router-dom';
 import { getMemoryByDate, updateMemory } from '../services/memoryService';
 import { upload } from '@vercel/blob/client';
 import type { MemoryMedia } from '../types';
@@ -16,8 +16,8 @@ interface UploadedFile {
 }
 
 const EditMemoryPage: React.FC = () => {
-  const { date: dateParam } = ReactRouterDOM.useParams<{ date: string }>();
-  const navigate = ReactRouterDOM.useNavigate();
+  const { date: dateParam } = useParams<{ date: string }>();
+  const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [memoryId, setMemoryId] = useState<string | null>(null);
@@ -63,28 +63,43 @@ const EditMemoryPage: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title || !description || !memoryId || !coverImageUrl) return;
+    if (!title || !description || !memoryId || !coverImageUrl) {
+        alert('Por favor, completa todos los campos requeridos.');
+        return;
+    }
 
     setIsSaving(true);
-    
+    let newUploadedMedia: MemoryMedia[] = [];
+
+    // ETAPA 1: Subida de nuevos archivos (si los hay)
     try {
-        let uploadedMedia: MemoryMedia[] = [];
         if(newFiles.length > 0) {
              for (const [index, f] of newFiles.entries()) {
-                const blob = await upload(f.file.name, f.file, {
-                    access: 'public',
-                    handleUploadUrl: '/api/upload',
-                });
-                
-                uploadedMedia.push({
-                    id: `${Date.now()}-${index}`,
-                    url: blob.url,
-                    type: f.file.type.startsWith('image/') ? 'image' : f.file.type.startsWith('video/') ? 'video' : 'audio'
-                });
+                try {
+                    const blob = await upload(f.file.name, f.file, {
+                        access: 'public',
+                        handleUploadUrl: '/api/upload',
+                    });
+                    
+                    newUploadedMedia.push({
+                        id: `${Date.now()}-${index}`,
+                        url: blob.url,
+                        type: f.file.type.startsWith('image/') ? 'image' : f.file.type.startsWith('video/') ? 'video' : 'audio'
+                    });
+                } catch (uploadError) {
+                    throw new Error(`Error al subir el nuevo archivo ${f.file.name}: ${uploadError instanceof Error ? uploadError.message : String(uploadError)}`);
+                }
             }
         }
-        
-        const allMedia = [...existingMedia, ...uploadedMedia];
+    } catch (error) {
+        alert(error instanceof Error ? error.message : String(error));
+        setIsSaving(false);
+        return; // Detener la ejecución si la subida falla
+    }
+    
+    // ETAPA 2: Actualización en la base de datos
+    try {
+        const allMedia = [...existingMedia, ...newUploadedMedia];
         
         await updateMemory({
             id: memoryId,
@@ -96,12 +111,10 @@ const EditMemoryPage: React.FC = () => {
             coverImageUrl,
         });
         
-        setIsSaving(false);
         navigate(`/recuerdo/${date}`);
-
-    } catch (error) {
-        console.error("Failed to update memory:", error);
-        alert(`Hubo un error al guardar los cambios: ${error instanceof Error ? error.message : String(error)}`);
+    } catch (dbError) {
+        alert(`Error al guardar los cambios en la base de datos: ${dbError instanceof Error ? dbError.message : String(dbError)}`);
+    } finally {
         setIsSaving(false);
     }
   };

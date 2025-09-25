@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-// FIX: Using namespace import for react-router-dom to fix resolution errors.
-import * as ReactRouterDOM from 'react-router-dom';
+// FIX: Use named imports for react-router-dom to fix resolution errors.
+import { Link } from 'react-router-dom';
 import { getMemories } from '../services/memoryService';
 import type { Memory } from '../types';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/Card';
@@ -43,9 +43,9 @@ const MapPage: React.FC = () => {
               {memoriesWithLocation.map(memory => (
                 <li key={memory.id} className="p-4 bg-secondary rounded-lg flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                   <div>
-                    <ReactRouterDOM.Link to={`/recuerdo/${memory.date}`} className="font-bold font-serif hover:text-accent transition-colors">
+                    <Link to={`/recuerdo/${memory.date}`} className="font-bold font-serif hover:text-accent transition-colors">
                       {memory.title}
-                    </ReactRouterDOM.Link>
+                    </Link>
                     <p className="text-sm text-muted-foreground">
                       {format(new Date(memory.date.replace(/-/g, '/')), 'dd MMMM, yyyy', { locale: es })}
                     </p>

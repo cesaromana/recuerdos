@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-// FIX: Using namespace import for react-router-dom to fix resolution errors.
-import * as ReactRouterDOM from 'react-router-dom';
+// FIX: Use named imports for react-router-dom to fix resolution errors.
+import { useNavigate, useLocation } from 'react-router-dom';
 import { format } from 'date-fns';
 import { upload } from '@vercel/blob/client';
 import { addMemory } from '../services/memoryService';
@@ -17,8 +17,8 @@ interface UploadedFile {
 }
 
 const CreateMemoryPage: React.FC = () => {
-  const navigate = ReactRouterDOM.useNavigate();
-  const location = ReactRouterDOM.useLocation();
+  const navigate = useNavigate();
+  const location = useLocation();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const queryParams = new URLSearchParams(location.search);
@@ -83,24 +83,37 @@ const CreateMemoryPage: React.FC = () => {
     setIsSaving(true);
     setUploadProgress(0);
 
-    try {
-      const uploadedMedia: MemoryMedia[] = [];
-      
-      for (const [index, f] of files.entries()) {
-        const blob = await upload(f.file.name, f.file, {
-          access: 'public',
-          handleUploadUrl: '/api/upload',
-        });
-        
-        uploadedMedia.push({
-          id: `${Date.now()}-${index}`,
-          url: blob.url,
-          type: f.file.type.startsWith('image/') ? 'image' : f.file.type.startsWith('video/') ? 'video' : 'audio'
-        });
+    const uploadedMedia: MemoryMedia[] = [];
 
-        setUploadProgress(((index + 1) / files.length) * 100);
+    // ETAPA 1: Subida de archivos
+    try {
+      for (const [index, f] of files.entries()) {
+        try {
+          const blob = await upload(f.file.name, f.file, {
+            access: 'public',
+            handleUploadUrl: '/api/upload',
+          });
+          
+          uploadedMedia.push({
+            id: `${Date.now()}-${index}`,
+            url: blob.url,
+            type: f.file.type.startsWith('image/') ? 'image' : f.file.type.startsWith('video/') ? 'video' : 'audio'
+          });
+
+          setUploadProgress(((index + 1) / files.length) * 100);
+        } catch (uploadError) {
+          throw new Error(`Error al subir el archivo ${f.file.name}: ${uploadError instanceof Error ? uploadError.message : String(uploadError)}`);
+        }
       }
-      
+    } catch (error) {
+        alert(error instanceof Error ? error.message : String(error));
+        setIsSaving(false);
+        setUploadProgress(0);
+        return; // Detener la ejecución si la subida falla
+    }
+
+    // ETAPA 2: Guardado en la base de datos
+    try {
       const coverImageUrl = uploadedMedia[coverImageIndex].url;
 
       await addMemory({ 
@@ -113,9 +126,8 @@ const CreateMemoryPage: React.FC = () => {
       });
       
       navigate('/');
-    } catch (error) {
-      console.error("Failed to save memory:", error);
-      alert(`Hubo un error al guardar el recuerdo: ${error instanceof Error ? error.message : String(error)}`);
+    } catch (dbError) {
+      alert(`Error al guardar los datos en la base de datos: ${dbError instanceof Error ? dbError.message : String(dbError)}`);
     } finally {
       setIsSaving(false);
     }
