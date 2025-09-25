@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import * as ReactRouterDOM from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { format } from 'date-fns';
 import { upload } from '@vercel/blob/client';
 import { addMemory } from '../services/memoryService';
@@ -16,8 +16,8 @@ interface UploadedFile {
 }
 
 const CreateMemoryPage: React.FC = () => {
-  const navigate = ReactRouterDOM.useNavigate();
-  const location = ReactRouterDOM.useLocation();
+  const navigate = useNavigate();
+  const location = useLocation();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const queryParams = new URLSearchParams(location.search);
@@ -27,7 +27,6 @@ const CreateMemoryPage: React.FC = () => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [locationText, setLocationText] = useState('');
-  const [tags, setTags] = useState('');
   const [files, setFiles] = useState<UploadedFile[]>([]);
   const [coverImageIndex, setCoverImageIndex] = useState<number | null>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -109,8 +108,7 @@ const CreateMemoryPage: React.FC = () => {
           description, 
           media: uploadedMedia, 
           coverImageUrl,
-          location: locationText,
-          tags: tags.split(',').map(t => t.trim()).filter(Boolean)
+          location: locationText
       });
       
       navigate('/');
@@ -155,15 +153,9 @@ const CreateMemoryPage: React.FC = () => {
               <label htmlFor="description" className="font-medium text-foreground/90">Descripción</label>
               <Textarea id="description" value={description} onChange={e => setDescription(e.target.value)} placeholder="Describe lo que hicieron, cómo se sintieron..." rows={6} required />
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                    <label htmlFor="location" className="font-medium text-foreground/90">Ubicación (Opcional)</label>
-                    <Input id="location" value={locationText} onChange={e => setLocationText(e.target.value)} placeholder="Ej: Parque Central, Ciudad" />
-                </div>
-                <div className="space-y-2">
-                    <label htmlFor="tags" className="font-medium text-foreground/90">Etiquetas (separadas por comas)</label>
-                    <Input id="tags" value={tags} onChange={e => setTags(e.target.value)} placeholder="Ej: Viaje, Aniversario, Comida" />
-                </div>
+            <div className="space-y-2">
+                <label htmlFor="location" className="font-medium text-foreground/90">Ubicación (Opcional)</label>
+                <Input id="location" value={locationText} onChange={e => setLocationText(e.target.value)} placeholder="Ej: Parque Central, Ciudad" />
             </div>
             <div className="space-y-2">
                 <label className="font-medium text-foreground/90">Fotos y Videos</label>

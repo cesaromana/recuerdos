@@ -13,5 +13,4 @@ export interface Memory {
   media: MemoryMedia[];
   coverImageUrl: string;
   location?: string;
-  tags?: string[];
 }

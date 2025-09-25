@@ -1,6 +1,6 @@
 import React, { useState, FormEvent, useEffect, useRef } from 'react';
-// FIX: Using namespace import for react-router-dom to resolve module export errors.
-import * as ReactRouterDOM from 'react-router-dom';
+// FIX: Switched to a named import for react-router-dom to resolve module export errors.
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/Card';
 import { Heart, Padlock } from '../components/Icons';
@@ -11,7 +11,7 @@ const LoginPage: React.FC = () => {
   const [isUnlocked, setIsUnlocked] = useState(false);
   const [isFadingOut, setIsFadingOut] = useState(false);
   const { login, isAuthenticated } = useAuth();
-  const navigate = ReactRouterDOM.useNavigate();
+  const navigate = useNavigate();
   const [isHeartFilled, setIsHeartFilled] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
 

@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import * as ReactRouterDOM from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { getMemoryByDate } from '../services/memoryService';
 import type { Memory } from '../types';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale/es';
 import Button from '../components/Button';
-import { ChevronLeft, LoadingSpinner, Edit, Trash, MapPin, Tag } from '../components/Icons';
+import { ChevronLeft, LoadingSpinner, Edit, Trash, MapPin } from '../components/Icons';
 
 const ViewMemoryPage: React.FC = () => {
-  const { date } = ReactRouterDOM.useParams<{ date: string }>();
-  const navigate = ReactRouterDOM.useNavigate();
+  const { date } = useParams<{ date: string }>();
+  const navigate = useNavigate();
   const [memory, setMemory] = useState<Memory | null>(null);
   const [loading, setLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -86,12 +86,12 @@ const ViewMemoryPage: React.FC = () => {
             Volver
           </Button>
           <div className="flex items-center gap-2">
-             <ReactRouterDOM.Link to={`/editar/${memory.date}`}>
+             <Link to={`/editar/${memory.date}`}>
                  <Button variant="outline" size="sm" className="flex items-center gap-2">
                      <Edit className="w-4 h-4" />
                      Editar
                  </Button>
-             </ReactRouterDOM.Link>
+             </Link>
               <Button variant="destructive" size="sm" onClick={handleDelete} disabled={isDeleting} className="flex items-center gap-2">
                   {isDeleting ? <LoadingSpinner className="w-4 h-4" /> : <Trash className="w-4 h-4" />}
                   {isDeleting ? 'Eliminando...' : 'Eliminar'}
@@ -110,14 +110,6 @@ const ViewMemoryPage: React.FC = () => {
                     <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(memory.location)}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:text-accent transition-colors">
                         <MapPin className="w-4 h-4"/> {memory.location}
                     </a>
-                )}
-                {memory.tags && memory.tags.length > 0 && (
-                    <div className="flex items-center gap-2">
-                       <Tag className="w-4 h-4" />
-                        {memory.tags.map(tag => (
-                            <span key={tag} className="px-2 py-1 bg-secondary rounded-md text-xs font-medium">{tag}</span>
-                        ))}
-                    </div>
                 )}
             </div>
 

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
-// FIX: Using namespace import for react-router-dom to resolve module export errors.
-import * as ReactRouterDOM from 'react-router-dom';
+// FIX: Switched to named imports for react-router-dom to resolve module export errors.
+import { Link, useNavigate } from 'react-router-dom';
 import { getMemories } from '../services/memoryService';
 import type { Memory } from '../types';
 // FIX: Use subpath imports for date-fns functions that were causing errors.
@@ -38,12 +38,12 @@ const OnThisDay: React.FC<{ memories: Memory[] }> = ({ memories }) => {
           const yearsAgo = today.getFullYear() - memoryYear;
           return (
             <li key={memory.id}>
-              <ReactRouterDOM.Link 
+              <Link 
                 to={`/recuerdo/${memory.date}`} 
                 className="text-sm text-foreground/80 hover:text-accent transition-colors"
               >
                 ...hace <strong>{yearsAgo}</strong> {yearsAgo === 1 ? 'año' : 'años'}, {memory.title}.
-              </ReactRouterDOM.Link>
+              </Link>
             </li>
           );
         })}
@@ -92,8 +92,8 @@ const CalendarGrid: React.FC<{ days: Date[], memoriesByDate: Map<string, Memory>
                 const targetUrl = memory ? `/recuerdo/${dateKey}` : `/crear?date=${dateKey}`;
                 
                 return (
-                    // FIX: Use Link component from the ReactRouterDOM namespace.
-                    <ReactRouterDOM.Link to={targetUrl} key={day.toString()} className="relative aspect-square border-t border-l border-border/50 rounded-lg transition-all duration-300 ease-in-out hover:scale-105 hover:shadow-premium focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 group">
+                    // FIX: Use Link component directly from named imports.
+                    <Link to={targetUrl} key={day.toString()} className="relative aspect-square border-t border-l border-border/50 rounded-lg transition-all duration-300 ease-in-out hover:scale-105 hover:shadow-premium focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 group">
                          {memory ? (
                              <>
                                 <img src={memory.coverImageUrl} alt={memory.title} className="absolute inset-0 w-full h-full object-cover rounded-lg z-0 transition-transform duration-500 group-hover:scale-110"/>
@@ -106,7 +106,7 @@ const CalendarGrid: React.FC<{ days: Date[], memoriesByDate: Map<string, Memory>
                             </div>
                         )}
                         {isCurrentDay && <div className="absolute inset-0 rounded-lg ring-2 ring-accent pointer-events-none"></div>}
-                    </ReactRouterDOM.Link>
+                    </Link>
                 );
             })}
         </div>
@@ -118,30 +118,19 @@ const HomePage: React.FC = () => {
   const [allMemories, setAllMemories] = useState<Memory[]>([]);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [isSwitchingMonth, setIsSwitchingMonth] = useState(false);
-  const [selectedTag, setSelectedTag] = useState<string>('all');
-  const navigate = ReactRouterDOM.useNavigate();
+  const navigate = useNavigate();
 
   useEffect(() => {
     getMemories().then(setAllMemories);
   }, []);
   
-  const tags = useMemo(() => {
-      const allTags = new Set(allMemories.flatMap(m => m.tags || []));
-      return ['all', ...Array.from(allTags)];
-  }, [allMemories]);
-
-  const filteredMemories = useMemo(() => {
-    if (selectedTag === 'all') return allMemories;
-    return allMemories.filter(m => m.tags?.includes(selectedTag));
-  }, [allMemories, selectedTag]);
-
   const memoriesByDate = useMemo(() => {
     const map = new Map<string, Memory>();
-    filteredMemories.forEach((memory) => {
+    allMemories.forEach((memory) => {
       map.set(memory.date, memory);
     });
     return map;
-  }, [filteredMemories]);
+  }, [allMemories]);
 
   const daysInMonth = useMemo(() => {
     const start = startOfMonth(currentDate);
@@ -173,19 +162,6 @@ const HomePage: React.FC = () => {
                 onPrevMonth={handlePrevMonth}
                 onNextMonth={handleNextMonth}
             />
-            <div className="px-2 pb-4">
-                 <select 
-                    value={selectedTag} 
-                    onChange={e => setSelectedTag(e.target.value)}
-                    className="w-full sm:w-auto text-sm h-9 px-3 rounded-md border border-input bg-background focus:ring-1 focus:ring-ring focus:outline-none"
-                >
-                    {tags.map(tag => (
-                        <option key={tag} value={tag}>
-                            {tag === 'all' ? 'Todas las categorías' : tag}
-                        </option>
-                    ))}
-                </select>
-            </div>
             <CalendarGrid days={daysInMonth} memoriesByDate={memoriesByDate} isSwitching={isSwitchingMonth} />
        </div>
        <Button 

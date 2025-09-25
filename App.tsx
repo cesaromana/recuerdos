@@ -1,6 +1,6 @@
 import React from 'react';
-// FIX: Using namespace import for react-router-dom to resolve module export errors.
-import * as ReactRouterDOM from 'react-router-dom';
+// FIX: Switched to named imports for react-router-dom to resolve module export errors.
+import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import LoginPage from './pages/LoginPage';
 import HomePage from './pages/HomePage';
@@ -19,8 +19,8 @@ interface ProtectedRouteProps {
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const { isAuthenticated } = useAuth();
   if (!isAuthenticated) {
-    // FIX: Use Navigate component from the ReactRouterDOM namespace.
-    return <ReactRouterDOM.Navigate to="/login" replace />;
+    // FIX: Use Navigate component directly from named imports.
+    return <Navigate to="/login" replace />;
   }
   return <>{children}</>;
 };
@@ -28,10 +28,10 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
 const App: React.FC = () => {
   return (
     <AuthProvider>
-      {/* FIX: Use HashRouter component from the ReactRouterDOM namespace. */}
-      <ReactRouterDOM.HashRouter>
+      {/* FIX: Use HashRouter component directly from named imports. */}
+      <HashRouter>
         <Main />
-      </ReactRouterDOM.HashRouter>
+      </HashRouter>
     </AuthProvider>
   );
 };
@@ -43,39 +43,39 @@ const Main: React.FC = () => {
     <div className="min-h-screen bg-background text-foreground">
       {isAuthenticated && <Header />}
       <main className="p-4 sm:p-6 md:p-8">
-        {/* FIX: Use Routes and Route components from the ReactRouterDOM namespace. */}
-        <ReactRouterDOM.Routes>
-          <ReactRouterDOM.Route path="/login" element={<LoginPage />} />
-          <ReactRouterDOM.Route
+        {/* FIX: Use Routes and Route components directly from named imports. */}
+        <Routes>
+          <Route path="/login" element={<LoginPage />} />
+          <Route
             path="/"
             element={<ProtectedRoute><HomePage /></ProtectedRoute>}
           />
-          <ReactRouterDOM.Route
+          <Route
             path="/crear"
             element={<ProtectedRoute><CreateMemoryPage /></ProtectedRoute>}
           />
-          <ReactRouterDOM.Route
+          <Route
             path="/recuerdo/:date"
             element={<ProtectedRoute><ViewMemoryPage /></ProtectedRoute>}
           />
-          <ReactRouterDOM.Route
+          <Route
             path="/editar/:date"
             element={<ProtectedRoute><EditMemoryPage /></ProtectedRoute>}
           />
-           <ReactRouterDOM.Route
+           <Route
             path="/mapa"
             element={<ProtectedRoute><MapPage /></ProtectedRoute>}
           />
-          <ReactRouterDOM.Route
+          <Route
             path="/search"
             element={<ProtectedRoute><SearchPage /></ProtectedRoute>}
           />
-          <ReactRouterDOM.Route
+          <Route
             path="/resumen"
             element={<ProtectedRoute><SummaryPage /></ProtectedRoute>}
           />
-           <ReactRouterDOM.Route path="*" element={<ReactRouterDOM.Navigate to="/" />} />
-        </ReactRouterDOM.Routes>
+           <Route path="*" element={<Navigate to="/" />} />
+        </Routes>
       </main>
     </div>
   );
