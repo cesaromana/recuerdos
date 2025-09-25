@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-// FIX: Switched to a named import for react-router-dom to resolve module export errors.
+// FIX: Reverted to named imports for react-router-dom to fix resolution errors.
 import { Link } from 'react-router-dom';
 import { getMemories } from '../services/memoryService';
 import type { Memory } from '../types';

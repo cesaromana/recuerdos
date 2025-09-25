@@ -35,10 +35,11 @@ export const addMemory = async (data: NewMemoryData): Promise<Memory> => {
   const { date, title, description, media, coverImageUrl, location } = data;
   
   const mediaJson = JSON.stringify(media);
+  const finalLocation = location && location.trim() ? location.trim() : null;
   
   const { rows } = await sql`
     INSERT INTO memories (date, title, description, "coverImageUrl", media, location)
-    VALUES (${date}, ${title}, ${description}, ${coverImageUrl}, ${mediaJson}, ${location})
+    VALUES (${date}, ${title}, ${description}, ${coverImageUrl}, ${mediaJson}::jsonb, ${finalLocation})
     RETURNING id, date, title, description, "coverImageUrl", media, location;
   `;
   
@@ -58,6 +59,10 @@ export const updateMemory = async (data: UpdateMemoryData): Promise<Memory | und
   const { id, date, title, description, coverImageUrl, media, location } = data;
 
   const mediaJson = media !== undefined ? JSON.stringify(media) : undefined;
+  const finalLocation = location !== undefined 
+    ? (location.trim() ? location.trim() : null) 
+    : undefined;
+
 
   const { rows } = await sql`
     UPDATE memories
@@ -67,7 +72,7 @@ export const updateMemory = async (data: UpdateMemoryData): Promise<Memory | und
       description = COALESCE(${description}, description), 
       "coverImageUrl" = COALESCE(${coverImageUrl}, "coverImageUrl"), 
       media = COALESCE(${mediaJson}::jsonb, media),
-      location = COALESCE(${location}, location)
+      location = COALESCE(${finalLocation}, location)
     WHERE id = ${id}
     RETURNING id, date, title, description, "coverImageUrl", media, location;
   `;

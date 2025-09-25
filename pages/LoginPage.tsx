@@ -1,5 +1,5 @@
 import React, { useState, FormEvent, useEffect, useRef } from 'react';
-// FIX: Switched to a named import for react-router-dom to resolve module export errors.
+// FIX: Reverted to named imports for react-router-dom to fix resolution errors.
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/Card';

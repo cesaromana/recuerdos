@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-// FIX: Switched to named imports for react-router-dom to resolve module export errors.
+// FIX: Reverted to named imports for react-router-dom to fix resolution errors.
 import { Link, useNavigate } from 'react-router-dom';
 import { getMemories } from '../services/memoryService';
 import type { Memory } from '../types';
@@ -92,7 +92,6 @@ const CalendarGrid: React.FC<{ days: Date[], memoriesByDate: Map<string, Memory>
                 const targetUrl = memory ? `/recuerdo/${dateKey}` : `/crear?date=${dateKey}`;
                 
                 return (
-                    // FIX: Use Link component directly from named imports.
                     <Link to={targetUrl} key={day.toString()} className="relative aspect-square border-t border-l border-border/50 rounded-lg transition-all duration-300 ease-in-out hover:scale-105 hover:shadow-premium focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 group">
                          {memory ? (
                              <>

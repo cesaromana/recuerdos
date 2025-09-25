@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+// FIX: Reverted to named imports for react-router-dom to fix resolution errors.
 import { useParams, useNavigate } from 'react-router-dom';
 import { getMemoryByDate, updateMemory } from '../services/memoryService';
 import { upload } from '@vercel/blob/client';

@@ -1,5 +1,5 @@
 import React from 'react';
-// FIX: Switched to named imports for react-router-dom to resolve module export errors.
+// FIX: Reverted to named imports for react-router-dom to fix resolution errors with namespace import.
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import LoginPage from './pages/LoginPage';
@@ -19,7 +19,6 @@ interface ProtectedRouteProps {
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const { isAuthenticated } = useAuth();
   if (!isAuthenticated) {
-    // FIX: Use Navigate component directly from named imports.
     return <Navigate to="/login" replace />;
   }
   return <>{children}</>;
@@ -28,7 +27,6 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
 const App: React.FC = () => {
   return (
     <AuthProvider>
-      {/* FIX: Use HashRouter component directly from named imports. */}
       <HashRouter>
         <Main />
       </HashRouter>
@@ -43,7 +41,6 @@ const Main: React.FC = () => {
     <div className="min-h-screen bg-background text-foreground">
       {isAuthenticated && <Header />}
       <main className="p-4 sm:p-6 md:p-8">
-        {/* FIX: Use Routes and Route components directly from named imports. */}
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route

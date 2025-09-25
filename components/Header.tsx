@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-// FIX: Switched to named imports for react-router-dom to resolve module export errors.
+// FIX: Reverted to named imports for react-router-dom to fix resolution errors.
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Button from './Button';
