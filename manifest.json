@@ -1,0 +1,24 @@
+{
+  "short_name": "Nuestro Diario",
+  "name": "Nuestro Diario en el Tiempo",
+  "description": "Un diario privado para guardar los recuerdos de una pareja.",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "scope": "/",
+  "theme_color": "#FFFBF5",
+  "background_color": "#FFFBF5"
+}
