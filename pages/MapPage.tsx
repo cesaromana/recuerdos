@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-// FIX: Use named imports for react-router-dom to fix resolution errors.
-import { Link } from 'react-router-dom';
+// FIX: Use namespace import for react-router-dom to fix resolution errors.
+import * as ReactRouterDOM from 'react-router-dom';
 import { getMemories } from '../services/memoryService';
 import type { Memory } from '../types';
-import { Card, CardContent, CardHeader, CardTitle } from '../components/Card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/Card';
 import { LoadingSpinner, MapPin } from '../components/Icons';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale/es';
@@ -14,8 +14,10 @@ const MapPage: React.FC = () => {
 
   useEffect(() => {
     getMemories().then(allMemories => {
-      const filtered = allMemories.filter(m => m.location);
-      setMemoriesWithLocation(filtered);
+      const filteredAndSorted = allMemories
+        .filter(m => m.location)
+        .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+      setMemoriesWithLocation(filteredAndSorted);
       setLoading(false);
     });
   }, []);
@@ -29,45 +31,68 @@ const MapPage: React.FC = () => {
   }
 
   return (
-    <div className="max-w-5xl mx-auto animate-slideInUp">
-      <Card>
-        <CardHeader>
-          <CardTitle>Mapa de Nuestras Aventuras</CardTitle>
-           <p className="text-muted-foreground pt-2">
-            Aquí están todos los lugares especiales que hemos guardado. En el futuro, esto será un mapa interactivo.
-          </p>
-        </CardHeader>
-        <CardContent>
-          {memoriesWithLocation.length > 0 ? (
-            <ul className="space-y-4">
-              {memoriesWithLocation.map(memory => (
-                <li key={memory.id} className="p-4 bg-secondary rounded-lg flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                  <div>
-                    {/* FIX: Replaced ReactRouterDOM.Link with Link from named import. */}
-                    <Link to={`/recuerdo/${memory.date}`} className="font-bold font-serif hover:text-accent transition-colors">
-                      {memory.title}
-                    </Link>
-                    <p className="text-sm text-muted-foreground">
+    <div className="max-w-4xl mx-auto animate-slideInUp">
+      <CardHeader className="px-0">
+        <CardTitle>Mapa de Nuestras Aventuras</CardTitle>
+        <CardDescription>
+          Un viaje cronológico por los lugares que han marcado nuestra historia.
+        </CardDescription>
+      </CardHeader>
+
+      <div className="mt-8">
+        {memoriesWithLocation.length > 0 ? (
+          <div className="relative pl-12 sm:pl-16">
+            {/* The vertical timeline line */}
+            <div 
+              className="absolute left-0 top-0 h-full border-l-2 border-dashed border-muted/30"
+              style={{ left: '28px' }}
+              aria-hidden="true"
+            />
+            
+            <div className="space-y-16">
+              {memoriesWithLocation.map((memory) => (
+                <div key={memory.id} className="relative">
+                  {/* The image "pin" on the timeline */}
+                  <ReactRouterDOM.Link to={`/recuerdo/${memory.date}`} className="absolute -left-1.5 top-0">
+                    <img 
+                      src={memory.coverImageUrl} 
+                      alt={memory.title}
+                      className="w-16 h-16 object-cover rounded-full border-4 border-background shadow-lg transition-transform hover:scale-110"
+                    />
+                  </ReactRouterDOM.Link>
+                  
+                  {/* The content */}
+                  <div className="pl-12 ml-4 group">
+                    <p className="text-sm text-muted-foreground font-medium">
                       {format(new Date(memory.date.replace(/-/g, '/')), 'dd MMMM, yyyy', { locale: es })}
                     </p>
+                    <ReactRouterDOM.Link to={`/recuerdo/${memory.date}`}>
+                      <h3 className="text-2xl font-serif font-bold text-foreground mt-1 group-hover:text-accent transition-colors">
+                        {memory.title}
+                      </h3>
+                    </ReactRouterDOM.Link>
+                    <a 
+                      href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(memory.location || '')}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 text-sm font-medium text-foreground/70 mt-3 hover:text-accent transition-colors"
+                    >
+                      <MapPin className="w-4 h-4"/>
+                      {memory.location}
+                    </a>
                   </div>
-                  <a
-                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(memory.location || '')}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-2 text-sm font-medium text-accent hover:underline whitespace-nowrap"
-                  >
-                    <MapPin className="w-4 h-4" />
-                    {memory.location}
-                  </a>
-                </li>
+                </div>
               ))}
-            </ul>
-          ) : (
-            <p>Aún no hay recuerdos con ubicaciones guardadas.</p>
-          )}
-        </CardContent>
-      </Card>
+            </div>
+          </div>
+        ) : (
+           <Card>
+              <CardContent className="py-12 text-center">
+                  <p className="text-muted-foreground">Aún no hay recuerdos con ubicaciones guardadas para mostrar en el mapa.</p>
+              </CardContent>
+          </Card>
+        )}
+      </div>
     </div>
   );
 };
