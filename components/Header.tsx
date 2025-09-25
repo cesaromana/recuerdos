@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-// FIX: Use namespace import for react-router-dom to fix resolution errors.
-import * as ReactRouterDOM from 'react-router-dom';
+// FIX: Switched from a namespace import to named imports for react-router-dom to fix resolution errors.
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Button from './Button';
 import { Heart, Search, Map, BarChart, Plus } from './Icons';
@@ -9,8 +9,8 @@ import { format } from 'date-fns/format';
 
 const Header: React.FC = () => {
   const { logout } = useAuth();
-  // FIX: Replaced useNavigate with ReactRouterDOM.useNavigate from namespace import.
-  const navigate = ReactRouterDOM.useNavigate();
+  // FIX: Replaced ReactRouterDOM.useNavigate with useNavigate from named import.
+  const navigate = useNavigate();
   const [isHeartFilled, setIsHeartFilled] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -36,8 +36,8 @@ const Header: React.FC = () => {
   return (
     <header className="flex items-center justify-between flex-wrap gap-4 p-4 border-b border-border bg-background/80 backdrop-blur-sm sticky top-0 z-10">
       <div className="flex items-center gap-3">
-        {/* FIX: Replaced Link with ReactRouterDOM.Link from namespace import. */}
-        <ReactRouterDOM.Link to="/" className="flex items-center gap-3">
+        {/* FIX: Replaced ReactRouterDOM.Link with Link from named import. */}
+        <Link to="/" className="flex items-center gap-3">
             <button onClick={handleHeartClick} onAnimationEnd={() => setIsAnimating(false)} className="flex-shrink-0">
               <Heart 
                   isFilled={isHeartFilled} 
@@ -45,7 +45,7 @@ const Header: React.FC = () => {
                 />
             </button>
             <h1 className="text-xl sm:text-2xl font-serif font-bold text-foreground whitespace-nowrap">Nuestro Diario</h1>
-        </ReactRouterDOM.Link>
+        </Link>
       </div>
 
       <div className="w-full sm:w-auto flex items-center gap-2 order-3 sm:order-2">
@@ -71,18 +71,18 @@ const Header: React.FC = () => {
             Añadir
         </Button>
 
-        {/* FIX: Replaced Link with ReactRouterDOM.Link from namespace import. */}
-        <ReactRouterDOM.Link to="/mapa">
+        {/* FIX: Replaced ReactRouterDOM.Link with Link from named import. */}
+        <Link to="/mapa">
             <Button variant="ghost" size="icon" aria-label="Mapa">
                 <Map className="h-5 w-5"/>
             </Button>
-        </ReactRouterDOM.Link>
-        {/* FIX: Replaced Link with ReactRouterDOM.Link from namespace import. */}
-        <ReactRouterDOM.Link to="/resumen">
+        </Link>
+        {/* FIX: Replaced ReactRouterDOM.Link with Link from named import. */}
+        <Link to="/resumen">
             <Button variant="ghost" size="icon" aria-label="Resúmenes">
                 <BarChart className="h-5 w-5"/>
             </Button>
-        </ReactRouterDOM.Link>
+        </Link>
         <Button onClick={logout} variant="ghost" size="sm">
           Salir
         </Button>
