@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-// FIX: Reverted to named imports for react-router-dom to fix resolution errors.
-import { useNavigate, useLocation } from 'react-router-dom';
+// FIX: Using namespace import for react-router-dom to fix resolution errors.
+import * as ReactRouterDOM from 'react-router-dom';
 import { format } from 'date-fns';
 import { upload } from '@vercel/blob/client';
 import { addMemory } from '../services/memoryService';
@@ -17,8 +17,8 @@ interface UploadedFile {
 }
 
 const CreateMemoryPage: React.FC = () => {
-  const navigate = useNavigate();
-  const location = useLocation();
+  const navigate = ReactRouterDOM.useNavigate();
+  const location = ReactRouterDOM.useLocation();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const queryParams = new URLSearchParams(location.search);
@@ -115,7 +115,7 @@ const CreateMemoryPage: React.FC = () => {
       navigate('/');
     } catch (error) {
       console.error("Failed to save memory:", error);
-      alert('Hubo un error al guardar el recuerdo. Por favor, inténtalo de nuevo.');
+      alert(`Hubo un error al guardar el recuerdo: ${error instanceof Error ? error.message : String(error)}`);
     } finally {
       setIsSaving(false);
     }
