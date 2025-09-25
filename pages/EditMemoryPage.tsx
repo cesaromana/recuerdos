@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-// FIX: Switched from a namespace import to named imports for react-router-dom to fix resolution errors.
-import { useParams, useNavigate } from 'react-router-dom';
+// FIX: Reverted to namespace import for react-router-dom to fix module resolution errors.
+import * as ReactRouterDOM from 'react-router-dom';
 import { getMemoryByDate, updateMemory } from '../services/memoryService';
 import { upload } from '@vercel/blob/client';
 import type { MemoryMedia } from '../types';
@@ -16,10 +16,8 @@ interface UploadedFile {
 }
 
 const EditMemoryPage: React.FC = () => {
-  // FIX: Replaced ReactRouterDOM.useParams with useParams from named import.
-  const { date: dateParam } = useParams<{ date: string }>();
-  // FIX: Replaced ReactRouterDOM.useNavigate with useNavigate from named import.
-  const navigate = useNavigate();
+  const { date: dateParam } = ReactRouterDOM.useParams<{ date: string }>();
+  const navigate = ReactRouterDOM.useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [memoryId, setMemoryId] = useState<string | null>(null);

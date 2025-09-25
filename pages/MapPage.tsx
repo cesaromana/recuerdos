@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-// FIX: Switched from a namespace import to a named import for react-router-dom to fix resolution errors.
-import { Link } from 'react-router-dom';
+// FIX: Reverted to namespace import for react-router-dom to fix module resolution errors.
+import * as ReactRouterDOM from 'react-router-dom';
 import { getMemories } from '../services/memoryService';
 import type { Memory } from '../types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/Card';
@@ -53,26 +53,24 @@ const MapPage: React.FC = () => {
               {memoriesWithLocation.map((memory) => (
                 <div key={memory.id} className="relative">
                   {/* The image "pin" on the timeline */}
-                  {/* FIX: Replaced ReactRouterDOM.Link with Link from named import. */}
-                  <Link to={`/recuerdo/${memory.date}`} className="absolute -left-1.5 top-0">
+                  <ReactRouterDOM.Link to={`/recuerdo/${memory.date}`} className="absolute -left-1.5 top-0">
                     <img 
                       src={memory.coverImageUrl} 
                       alt={memory.title}
                       className="w-16 h-16 object-cover rounded-full border-4 border-background shadow-lg transition-transform hover:scale-110"
                     />
-                  </Link>
+                  </ReactRouterDOM.Link>
                   
                   {/* The content */}
                   <div className="pl-12 ml-4 group">
                     <p className="text-sm text-muted-foreground font-medium">
                       {format(new Date(memory.date.replace(/-/g, '/')), 'dd MMMM, yyyy', { locale: es })}
                     </p>
-                    {/* FIX: Replaced ReactRouterDOM.Link with Link from named import. */}
-                    <Link to={`/recuerdo/${memory.date}`}>
+                    <ReactRouterDOM.Link to={`/recuerdo/${memory.date}`}>
                       <h3 className="text-2xl font-serif font-bold text-foreground mt-1 group-hover:text-accent transition-colors">
                         {memory.title}
                       </h3>
-                    </Link>
+                    </ReactRouterDOM.Link>
                     <a 
                       href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(memory.location || '')}`}
                       target="_blank"

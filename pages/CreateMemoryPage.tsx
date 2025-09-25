@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-// FIX: Switched from a namespace import to named imports for react-router-dom to fix resolution errors.
-import { useNavigate, useLocation } from 'react-router-dom';
+// FIX: Reverted to namespace import for react-router-dom to fix module resolution errors.
+import * as ReactRouterDOM from 'react-router-dom';
 import { format } from 'date-fns/format';
 import { es } from 'date-fns/locale/es';
 import { upload } from '@vercel/blob/client';
@@ -18,10 +18,8 @@ interface UploadedFile {
 }
 
 const CreateMemoryPage: React.FC = () => {
-  // FIX: Replaced ReactRouterDOM.useNavigate with useNavigate from named import.
-  const navigate = useNavigate();
-  // FIX: Replaced ReactRouterDOM.useLocation with useLocation from named import.
-  const location = useLocation();
+  const navigate = ReactRouterDOM.useNavigate();
+  const location = ReactRouterDOM.useLocation();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const queryParams = new URLSearchParams(location.search);
