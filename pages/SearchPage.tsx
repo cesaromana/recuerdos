@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 // FIX: Use named imports for react-router-dom to fix resolution errors.
 // FIX: Changed to namespace import to fix module resolution errors.
-import * as ReactRouterDOM from 'react-router-dom';
+// FIX: Reverted to named imports to resolve component properties.
+import { useLocation, Link } from 'react-router-dom';
 import { searchMemories } from '../services/memoryService';
 import type { Memory } from '../types';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/Card';
@@ -10,7 +11,8 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale/es';
 
 const SearchPage: React.FC = () => {
-  const location = ReactRouterDOM.useLocation();
+  // FIX: Replaced ReactRouterDOM.useLocation with useLocation from named import.
+  const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
   const query = queryParams.get('q') || '';
   
@@ -48,9 +50,10 @@ const SearchPage: React.FC = () => {
             <ul className="space-y-4">
               {results.map(memory => (
                 <li key={memory.id} className="p-4 bg-secondary rounded-lg">
-                  <ReactRouterDOM.Link to={`/recuerdo/${memory.date}`} className="font-bold font-serif text-lg hover:text-accent transition-colors">
+                  {/* FIX: Replaced ReactRouterDOM.Link with Link from named import. */}
+                  <Link to={`/recuerdo/${memory.date}`} className="font-bold font-serif text-lg hover:text-accent transition-colors">
                     {memory.title}
-                  </ReactRouterDOM.Link>
+                  </Link>
                   <p className="text-sm text-muted-foreground mb-2">
                     {format(new Date(memory.date.replace(/-/g, '/')), 'dd MMMM, yyyy', { locale: es })}
                   </p>

@@ -1,26 +1,7 @@
-import { sql } from '@vercel/postgres';
 import type { Memory, MemoryMedia } from '../types';
 
-// NOTE: This service now connects to a real Vercel Postgres database.
-
-export const getMemories = async (): Promise<Memory[]> => {
-  const { rows } = await sql`SELECT id, date, title, description, "coverImageUrl", media, location FROM memories ORDER BY date DESC;`;
-  return rows.map(row => ({
-    ...row,
-    date: new Date(row.date).toISOString().split('T')[0] // Ensure date format is correct
-  })) as Memory[];
-};
-
-export const getMemoryByDate = async (date: string): Promise<Memory | undefined> => {
-  const { rows } = await sql`SELECT id, date, title, description, "coverImageUrl", media, location FROM memories WHERE date = ${date};`;
-  if (rows.length === 0) return undefined;
-  
-  const row = rows[0];
-  return {
-     ...row,
-    date: new Date(row.date).toISOString().split('T')[0]
-  } as Memory;
-};
+// This service is now a pure API client. It fetches data from our secure server-side API routes.
+// It no longer contains any database logic.
 
 interface NewMemoryData {
     date: string;
@@ -31,85 +12,68 @@ interface NewMemoryData {
     location?: string;
 }
 
-export const addMemory = async (data: NewMemoryData): Promise<Memory> => {
-  const { date, title, description, media, coverImageUrl, location } = data;
-  
-  const mediaJson = JSON.stringify(media);
-  const finalLocation = location && location.trim() ? location.trim() : null;
-  
-  try {
-    const { rows } = await sql`
-      INSERT INTO memories (date, title, description, "coverImageUrl", media, location)
-      VALUES (${date}, ${title}, ${description}, ${coverImageUrl}, ${mediaJson}::jsonb, ${finalLocation})
-      RETURNING id, date, title, description, "coverImageUrl", media, location;
-    `;
-    
-    const row = rows[0];
-    return {
-      ...row,
-      date: new Date(row.date).toISOString().split('T')[0]
-    } as Memory;
-  } catch (error) {
-    console.error('Database Error (addMemory):', error);
-    throw new Error(`Error en la base de datos al añadir el recuerdo: ${(error as Error).message}`);
-  }
-};
-
-// The data type for update can include the ID and be partial
+// FIX: Corrected typo in type name from `New-MemoryData` to `NewMemoryData`.
 export interface UpdateMemoryData extends Partial<NewMemoryData> {
     id: string;
 }
 
-export const updateMemory = async (data: UpdateMemoryData): Promise<Memory | undefined> => {
-  const { id, date, title, description, coverImageUrl, media, location } = data;
+/**
+ * A helper function to handle API requests and error handling.
+ * @param url The API endpoint to call.
+ * @param options The options for the fetch request (method, body, etc.).
+ * @returns The JSON response from the API.
+ */
+async function fetchApi(url: string, options: RequestInit = {}) {
+  const response = await fetch(url, {
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+    ...options,
+  });
 
-  const mediaJson = media !== undefined ? JSON.stringify(media) : undefined;
-  const finalLocation = location !== undefined 
-    ? (location.trim() ? location.trim() : null) 
-    : undefined;
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({ error: 'Error desconocido en la API' }));
+    throw new Error(errorData.error || `La petición a la API falló con estado ${response.status}`);
+  }
 
-  try {
-    const { rows } = await sql`
-      UPDATE memories
-      SET 
-        date = COALESCE(${date}, date), 
-        title = COALESCE(${title}, title), 
-        description = COALESCE(${description}, description), 
-        "coverImageUrl" = COALESCE(${coverImageUrl}, "coverImageUrl"), 
-        media = COALESCE(${mediaJson}::jsonb, media),
-        location = COALESCE(${finalLocation}, location)
-      WHERE id = ${id}
-      RETURNING id, date, title, description, "coverImageUrl", media, location;
-    `;
+  // Handle cases with no content in response, e.g., a 204 No Content status.
+  const contentType = response.headers.get("content-type");
+  if (contentType && contentType.indexOf("application/json") !== -1) {
+    return response.json();
+  }
+  return null;
+}
 
-    if (rows.length === 0) return undefined;
+export const getMemories = async (): Promise<Memory[]> => {
+  return fetchApi('/api/memory');
+};
 
-    const row = rows[0];
-    return {
-       ...row,
-      date: new Date(row.date).toISOString().split('T')[0]
-    } as Memory;
+export const getMemoryByDate = async (date: string): Promise<Memory | undefined> => {
+   try {
+    const memory = await fetchApi(`/api/memory?date=${date}`);
+    return memory;
   } catch (error) {
-    console.error('Database Error (updateMemory):', error);
-    throw new Error(`Error en la base de datos al actualizar el recuerdo: ${(error as Error).message}`);
+    // If the API returns a 404, it will throw an error. We can treat this as "not found".
+    console.warn(`Memory for date ${date} not found via API.`);
+    return undefined;
   }
 };
 
-// Deletion is now handled by a secure server-side API route (/api/delete-memory.js)
+export const addMemory = async (data: NewMemoryData): Promise<Memory> => {
+  return fetchApi('/api/memory', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+};
+
+export const updateMemory = async (data: UpdateMemoryData): Promise<Memory | undefined> => {
+  return fetchApi('/api/memory', {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  });
+};
 
 export const searchMemories = async (query: string): Promise<Memory[]> => {
-    const searchQuery = `%${query}%`;
-    const { rows } = await sql`
-        SELECT id, date, title, description, "coverImageUrl", media, location
-        FROM memories 
-        WHERE 
-            title ILIKE ${searchQuery} OR 
-            description ILIKE ${searchQuery} OR
-            location ILIKE ${searchQuery}
-        ORDER BY date DESC;
-    `;
-    return rows.map(row => ({
-        ...row,
-        date: new Date(row.date).toISOString().split('T')[0]
-    })) as Memory[];
+  return fetchApi(`/api/memory?q=${encodeURIComponent(query)}`);
 };
