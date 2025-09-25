@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 // FIX: Use named imports for react-router-dom to fix resolution errors.
-// FIX: Changed to namespace import to fix module resolution errors.
-// FIX: Reverted to named imports to resolve component properties.
-import * as ReactRouterDOM from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { getMemoryByDate } from '../services/memoryService';
 import type { Memory } from '../types';
 import { format } from 'date-fns';
@@ -12,9 +10,9 @@ import { ChevronLeft, LoadingSpinner, Edit, Trash, MapPin } from '../components/
 
 const ViewMemoryPage: React.FC = () => {
   // FIX: Replaced ReactRouterDOM.useParams with useParams from named import.
-  const { date } = ReactRouterDOM.useParams<{ date: string }>();
+  const { date } = useParams<{ date: string }>();
   // FIX: Replaced ReactRouterDOM.useNavigate with useNavigate from named import.
-  const navigate = ReactRouterDOM.useNavigate();
+  const navigate = useNavigate();
   const [memory, setMemory] = useState<Memory | null>(null);
   const [loading, setLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -92,12 +90,12 @@ const ViewMemoryPage: React.FC = () => {
           </Button>
           <div className="flex items-center gap-2">
              {/* FIX: Replaced ReactRouterDOM.Link with Link from named import. */}
-             <ReactRouterDOM.Link to={`/editar/${memory.date}`}>
+             <Link to={`/editar/${memory.date}`}>
                  <Button variant="outline" size="sm" className="flex items-center gap-2">
                      <Edit className="w-4 h-4" />
                      Editar
                  </Button>
-             </ReactRouterDOM.Link>
+             </Link>
               <Button variant="destructive" size="sm" onClick={handleDelete} disabled={isDeleting} className="flex items-center gap-2">
                   {isDeleting ? <LoadingSpinner className="w-4 h-4" /> : <Trash className="w-4 h-4" />}
                   {isDeleting ? 'Eliminando...' : 'Eliminar'}

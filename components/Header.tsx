@@ -1,16 +1,16 @@
 import React, { useState } from 'react';
 // FIX: Use named imports for react-router-dom to fix resolution errors.
-// FIX: Changed to namespace import to fix module resolution errors.
-// FIX: Reverted to named imports to resolve component properties.
-import * as ReactRouterDOM from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Button from './Button';
-import { Heart, Search, Map, BarChart } from './Icons';
+import { Heart, Search, Map, BarChart, Plus } from './Icons';
+import { format } from 'date-fns/format';
+
 
 const Header: React.FC = () => {
   const { logout } = useAuth();
   // FIX: Replaced ReactRouterDOM.useNavigate with useNavigate from named import.
-  const navigate = ReactRouterDOM.useNavigate();
+  const navigate = useNavigate();
   const [isHeartFilled, setIsHeartFilled] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -28,11 +28,16 @@ const Header: React.FC = () => {
     }
   };
 
+  const handleCreateToday = () => {
+    const today = format(new Date(), 'yyyy-MM-dd');
+    navigate(`/crear?date=${today}`);
+  };
+
   return (
     <header className="flex items-center justify-between flex-wrap gap-4 p-4 border-b border-border bg-background/80 backdrop-blur-sm sticky top-0 z-10">
       <div className="flex items-center gap-3">
         {/* FIX: Replaced ReactRouterDOM.Link with Link from named import. */}
-        <ReactRouterDOM.Link to="/" className="flex items-center gap-3">
+        <Link to="/" className="flex items-center gap-3">
             <button onClick={handleHeartClick} onAnimationEnd={() => setIsAnimating(false)} className="flex-shrink-0">
               <Heart 
                   isFilled={isHeartFilled} 
@@ -40,7 +45,7 @@ const Header: React.FC = () => {
                 />
             </button>
             <h1 className="text-xl sm:text-2xl font-serif font-bold text-foreground whitespace-nowrap">Nuestro Diario</h1>
-        </ReactRouterDOM.Link>
+        </Link>
       </div>
 
       <div className="w-full sm:w-auto flex items-center gap-2 order-3 sm:order-2">
@@ -56,19 +61,28 @@ const Header: React.FC = () => {
         </form>
       </div>
 
-      <nav className="flex items-center gap-2 order-2 sm:order-3">
+      <nav className="flex items-center gap-1 sm:gap-2 order-2 sm:order-3">
+        {/* Botón para añadir recuerdo */}
+        <Button onClick={handleCreateToday} variant="ghost" size="icon" className="sm:hidden" aria-label="Añadir recuerdo">
+            <Plus className="h-6 w-6"/>
+        </Button>
+        <Button onClick={handleCreateToday} variant="outline" size="sm" className="hidden sm:inline-flex items-center gap-2">
+            <Plus className="w-4 h-4" />
+            Añadir
+        </Button>
+
         {/* FIX: Replaced ReactRouterDOM.Link with Link from named import. */}
-        <ReactRouterDOM.Link to="/mapa">
+        <Link to="/mapa">
             <Button variant="ghost" size="icon" aria-label="Mapa">
                 <Map className="h-5 w-5"/>
             </Button>
-        </ReactRouterDOM.Link>
+        </Link>
         {/* FIX: Replaced ReactRouterDOM.Link with Link from named import. */}
-        <ReactRouterDOM.Link to="/resumen">
+        <Link to="/resumen">
             <Button variant="ghost" size="icon" aria-label="Resúmenes">
                 <BarChart className="h-5 w-5"/>
             </Button>
-        </ReactRouterDOM.Link>
+        </Link>
         <Button onClick={logout} variant="ghost" size="sm">
           Salir
         </Button>

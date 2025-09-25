@@ -1,8 +1,6 @@
 import React from 'react';
 // FIX: Use named imports for react-router-dom to fix resolution errors.
-// FIX: Changed to namespace import to fix module resolution errors.
-// FIX: Reverted to named imports to resolve component properties.
-import * as ReactRouterDOM from 'react-router-dom';
+import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import LoginPage from './pages/LoginPage';
 import HomePage from './pages/HomePage';
@@ -22,7 +20,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const { isAuthenticated } = useAuth();
   if (!isAuthenticated) {
     // FIX: Replaced ReactRouterDOM.Navigate with Navigate from named import.
-    return <ReactRouterDOM.Navigate to="/login" replace />;
+    return <Navigate to="/login" replace />;
   }
   return <>{children}</>;
 };
@@ -31,9 +29,9 @@ const App: React.FC = () => {
   return (
     <AuthProvider>
       {/* FIX: Replaced ReactRouterDOM.HashRouter with HashRouter from named import. */}
-      <ReactRouterDOM.HashRouter>
+      <HashRouter>
         <Main />
-      </ReactRouterDOM.HashRouter>
+      </HashRouter>
     </AuthProvider>
   );
 };
@@ -46,47 +44,47 @@ const Main: React.FC = () => {
       {isAuthenticated && <Header />}
       <main className="p-4 sm:p-6 md:p-8">
         {/* FIX: Replaced ReactRouterDOM.Routes with Routes from named import. */}
-        <ReactRouterDOM.Routes>
+        <Routes>
           {/* FIX: Replaced ReactRouterDOM.Route with Route from named import. */}
-          <ReactRouterDOM.Route path="/login" element={<LoginPage />} />
+          <Route path="/login" element={<LoginPage />} />
           {/* FIX: Replaced ReactRouterDOM.Route with Route from named import. */}
-          <ReactRouterDOM.Route
+          <Route
             path="/"
             element={<ProtectedRoute><HomePage /></ProtectedRoute>}
           />
           {/* FIX: Replaced ReactRouterDOM.Route with Route from named import. */}
-          <ReactRouterDOM.Route
+          <Route
             path="/crear"
             element={<ProtectedRoute><CreateMemoryPage /></ProtectedRoute>}
           />
           {/* FIX: Replaced ReactRouterDOM.Route with Route from named import. */}
-          <ReactRouterDOM.Route
+          <Route
             path="/recuerdo/:date"
             element={<ProtectedRoute><ViewMemoryPage /></ProtectedRoute>}
           />
           {/* FIX: Replaced ReactRouterDOM.Route with Route from named import. */}
-          <ReactRouterDOM.Route
+          <Route
             path="/editar/:date"
             element={<ProtectedRoute><EditMemoryPage /></ProtectedRoute>}
           />
            {/* FIX: Replaced ReactRouterDOM.Route with Route from named import. */}
-           <ReactRouterDOM.Route
+           <Route
             path="/mapa"
             element={<ProtectedRoute><MapPage /></ProtectedRoute>}
           />
           {/* FIX: Replaced ReactRouterDOM.Route with Route from named import. */}
-          <ReactRouterDOM.Route
+          <Route
             path="/search"
             element={<ProtectedRoute><SearchPage /></ProtectedRoute>}
           />
           {/* FIX: Replaced ReactRouterDOM.Route with Route from named import. */}
-          <ReactRouterDOM.Route
+          <Route
             path="/resumen"
             element={<ProtectedRoute><SummaryPage /></ProtectedRoute>}
           />
            {/* FIX: Replaced ReactRouterDOM.Route with Route and ReactRouterDOM.Navigate with Navigate from named imports. */}
-           <ReactRouterDOM.Route path="*" element={<ReactRouterDOM.Navigate to="/" />} />
-        </ReactRouterDOM.Routes>
+           <Route path="*" element={<Navigate to="/" />} />
+        </Routes>
       </main>
     </div>
   );
