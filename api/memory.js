@@ -8,6 +8,7 @@ const formatMemoryFromRow = (row) => {
     if (!row) return null;
     return {
         ...row,
+        // Ensure date is always in YYYY-MM-DD format
         date: new Date(row.date).toISOString().split('T')[0]
     };
 };
@@ -45,7 +46,7 @@ export default async function handler(request, response) {
         }
         // Handle POST requests (adding a new memory)
         else if (request.method === 'POST') {
-            const { date, title, description, media, coverImageUrl, location } = JSON.parse(request.body);
+            const { date, title, description, media, coverImageUrl, location } = request.body; // Vercel parses the body automatically
             const mediaJson = JSON.stringify(media);
             const finalLocation = location && location.trim() ? location.trim() : null;
 
@@ -58,7 +59,7 @@ export default async function handler(request, response) {
         }
         // Handle PUT requests (updating an existing memory)
         else if (request.method === 'PUT') {
-            const { id, date, title, description, coverImageUrl, media, location } = JSON.parse(request.body);
+            const { id, date, title, description, coverImageUrl, media, location } = request.body; // Vercel parses the body automatically
             const mediaJson = media !== undefined ? JSON.stringify(media) : undefined;
             const finalLocation = location !== undefined ? (location.trim() ? location.trim() : null) : undefined;
 

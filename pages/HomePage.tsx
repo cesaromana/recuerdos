@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 // FIX: Use named imports for react-router-dom to fix resolution errors.
 // FIX: Changed to namespace import to fix module resolution errors.
 // FIX: Reverted to named imports to resolve component properties.
-import { Link, useNavigate } from 'react-router-dom';
+import * as ReactRouterDOM from 'react-router-dom';
 import { getMemories } from '../services/memoryService';
 import type { Memory } from '../types';
 // FIX: Use subpath imports for date-fns functions that were causing errors.
@@ -41,12 +41,12 @@ const OnThisDay: React.FC<{ memories: Memory[] }> = ({ memories }) => {
           return (
             <li key={memory.id}>
               {/* FIX: Replaced ReactRouterDOM.Link with Link from named import. */}
-              <Link 
+              <ReactRouterDOM.Link 
                 to={`/recuerdo/${memory.date}`} 
                 className="text-sm text-foreground/80 hover:text-accent transition-colors"
               >
                 ...hace <strong>{yearsAgo}</strong> {yearsAgo === 1 ? 'año' : 'años'}, {memory.title}.
-              </Link>
+              </ReactRouterDOM.Link>
             </li>
           );
         })}
@@ -95,8 +95,8 @@ const CalendarGrid: React.FC<{ days: Date[], memoriesByDate: Map<string, Memory>
                 const targetUrl = memory ? `/recuerdo/${dateKey}` : `/crear?date=${dateKey}`;
                 
                 return (
-                    {/* FIX: Replaced ReactRouterDOM.Link with Link from named import. */}
-                    <Link to={targetUrl} key={day.toString()} className="relative aspect-square border-t border-l border-border/50 rounded-lg transition-all duration-300 ease-in-out hover:scale-105 hover:shadow-premium focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 group">
+                    /* FIX: Replaced ReactRouterDOM.Link with Link from named import. */
+                    <ReactRouterDOM.Link to={targetUrl} key={day.toString()} className="relative aspect-square border-t border-l border-border/50 rounded-lg transition-all duration-300 ease-in-out hover:scale-105 hover:shadow-premium focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 group">
                          {memory ? (
                              <>
                                 <img src={memory.coverImageUrl} alt={memory.title} className="absolute inset-0 w-full h-full object-cover rounded-lg z-0 transition-transform duration-500 group-hover:scale-110"/>
@@ -109,7 +109,7 @@ const CalendarGrid: React.FC<{ days: Date[], memoriesByDate: Map<string, Memory>
                             </div>
                         )}
                         {isCurrentDay && <div className="absolute inset-0 rounded-lg ring-2 ring-accent pointer-events-none"></div>}
-                    </Link>
+                    </ReactRouterDOM.Link>
                 );
             })}
         </div>
@@ -122,7 +122,7 @@ const HomePage: React.FC = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [isSwitchingMonth, setIsSwitchingMonth] = useState(false);
   // FIX: Replaced ReactRouterDOM.useNavigate with useNavigate from named import.
-  const navigate = useNavigate();
+  const navigate = ReactRouterDOM.useNavigate();
 
   useEffect(() => {
     getMemories().then(setAllMemories);

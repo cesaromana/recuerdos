@@ -12,7 +12,6 @@ interface NewMemoryData {
     location?: string;
 }
 
-// FIX: Corrected typo in type name from `New-MemoryData` to `NewMemoryData`.
 export interface UpdateMemoryData extends Partial<NewMemoryData> {
     id: string;
 }

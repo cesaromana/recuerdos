@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 // FIX: Use named imports for react-router-dom to fix resolution errors.
 // FIX: Changed to namespace import to fix module resolution errors.
 // FIX: Reverted to named imports to resolve component properties.
-import { Link } from 'react-router-dom';
+import * as ReactRouterDOM from 'react-router-dom';
 import { getMemories } from '../services/memoryService';
 import type { Memory } from '../types';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/Card';
@@ -46,9 +46,9 @@ const MapPage: React.FC = () => {
                 <li key={memory.id} className="p-4 bg-secondary rounded-lg flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                   <div>
                     {/* FIX: Replaced ReactRouterDOM.Link with Link from named import. */}
-                    <Link to={`/recuerdo/${memory.date}`} className="font-bold font-serif hover:text-accent transition-colors">
+                    <ReactRouterDOM.Link to={`/recuerdo/${memory.date}`} className="font-bold font-serif hover:text-accent transition-colors">
                       {memory.title}
-                    </Link>
+                    </ReactRouterDOM.Link>
                     <p className="text-sm text-muted-foreground">
                       {format(new Date(memory.date.replace(/-/g, '/')), 'dd MMMM, yyyy', { locale: es })}
                     </p>
