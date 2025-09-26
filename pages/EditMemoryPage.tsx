@@ -18,13 +18,14 @@ interface UploadedFile {
 const EditMemoryPage: React.FC = () => {
   const { date: dateParam } = ReactRouterDOM.useParams<{ date: string }>();
   const navigate = ReactRouterDOM.useNavigate();
+  const location = ReactRouterDOM.useLocation();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [memoryId, setMemoryId] = useState<string | null>(null);
   const [date, setDate] = useState(dateParam || '');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [location, setLocation] = useState('');
+  const [locationText, setLocationText] = useState('');
   
   const [newFiles, setNewFiles] = useState<UploadedFile[]>([]);
   const [existingMedia, setExistingMedia] = useState<MemoryMedia[]>([]);
@@ -32,6 +33,7 @@ const EditMemoryPage: React.FC = () => {
   
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isNavigating, setIsNavigating] = useState(false);
 
   useEffect(() => {
     if (dateParam) {
@@ -41,7 +43,7 @@ const EditMemoryPage: React.FC = () => {
           setDate(memory.date);
           setTitle(memory.title);
           setDescription(memory.description);
-          setLocation(memory.location || '');
+          setLocationText(memory.location || '');
           setExistingMedia(memory.media);
           setCoverImageUrl(memory.coverImageUrl);
         }
@@ -50,6 +52,18 @@ const EditMemoryPage: React.FC = () => {
     }
   }, [dateParam]);
   
+  useEffect(() => {
+    if (isNavigating) {
+      setIsNavigating(false);
+    }
+  }, [location]);
+
+  const handleBackNavigation = () => {
+    if (isNavigating) return;
+    setIsNavigating(true);
+    navigate(-1);
+  };
+
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files) {
       // FIX: Add explicit type `File` to the `file` parameter to prevent it from being inferred as `unknown`.
@@ -100,7 +114,7 @@ const EditMemoryPage: React.FC = () => {
             date,
             title,
             description,
-            location,
+            location: locationText,
             media: allMedia,
             coverImageUrl,
         });
@@ -126,7 +140,8 @@ const EditMemoryPage: React.FC = () => {
     <div className="max-w-4xl mx-auto animate-slideInUp">
       <Button 
         variant="ghost" 
-        onClick={() => navigate(-1)} 
+        onClick={handleBackNavigation}
+        disabled={isNavigating}
         className="mb-6 inline-flex items-center gap-2 text-sm font-medium text-foreground/70 hover:text-foreground"
       >
         <ChevronLeft className="w-4 h-4" />
@@ -157,7 +172,7 @@ const EditMemoryPage: React.FC = () => {
             </div>
              <div className="space-y-2">
                 <label htmlFor="location" className="font-medium text-foreground/90">Ubicación (Opcional)</label>
-                <Input id="location" value={location} onChange={e => setLocation(e.target.value)} placeholder="Ej: Parque Central, Ciudad" />
+                <Input id="location" value={locationText} onChange={e => setLocationText(e.target.value)} placeholder="Ej: Parque Central, Ciudad" />
               </div>
              <div className="space-y-2">
                 <label className="font-medium text-foreground/90">Añadir más fotos</label>
@@ -175,7 +190,7 @@ const EditMemoryPage: React.FC = () => {
                 <p className="font-medium text-foreground/90">Elige la imagen de portada:</p>
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                   {allMediaForSelection.map((m) => m.type.startsWith('image/') && (
-                    <div key={m.id} className="relative cursor-pointer group animate-scaleIn bg-secondary rounded-lg" onClick={() => setCoverImageUrl(m.url)}>
+                    <div key={m.id} className="relative cursor-pointer group animate-scaleIn bg-secondary animate-pulse rounded-lg" onClick={() => setCoverImageUrl(m.url)}>
                       <img src={m.url} alt="Media preview" loading="lazy" className={`w-full h-32 object-cover rounded-lg transition-all ${coverImageUrl === m.url ? 'ring-4 ring-accent ring-offset-2' : 'group-hover:opacity-80'}`} />
                       {coverImageUrl === m.url && (
                         <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-lg">

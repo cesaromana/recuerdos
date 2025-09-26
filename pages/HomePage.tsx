@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 // FIX: Reverted to namespace import for react-router-dom to fix module resolution errors.
 import * as ReactRouterDOM from 'react-router-dom';
 import { getMemories } from '../services/memoryService';
@@ -11,6 +11,7 @@ import { subMonths } from 'date-fns/subMonths';
 import { es } from 'date-fns/locale/es';
 import Button from '../components/Button';
 import { ChevronLeft, ChevronRight, Plus } from '../components/Icons';
+import ZoomPreview from '../components/ZoomPreview';
 
 const OnThisDay: React.FC<{ memories: Memory[] }> = ({ memories }) => {
   const today = new Date();
@@ -75,8 +76,10 @@ const CalendarGrid: React.FC<{
     days: Date[], 
     memoriesByDate: Map<string, Memory>, 
     isSwitching: boolean,
-    onNavigate: (e: React.MouseEvent) => void 
-}> = ({ days, memoriesByDate, isSwitching, onNavigate }) => {
+    onNavigate: (e: React.MouseEvent) => void,
+    onDayPressStart: (e: React.MouseEvent | React.TouchEvent, memory: Memory) => void,
+    onDayPressEnd: () => void,
+}> = ({ days, memoriesByDate, isSwitching, onNavigate, onDayPressStart, onDayPressEnd }) => {
     const weekdays = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
     const firstDayOfMonth = getDay(days[0]);
 
@@ -101,7 +104,15 @@ const CalendarGrid: React.FC<{
                         to={targetUrl} 
                         key={day.toString()} 
                         onClick={onNavigate}
-                        className={`relative aspect-square border-t border-l border-border/50 rounded-lg transition-all duration-300 ease-in-out hover:scale-105 hover:shadow-premium focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 group overflow-hidden ${memory ? 'bg-secondary' : 'bg-card'}`}
+                        onMouseDown={memory ? (e) => onDayPressStart(e, memory) : undefined}
+                        // FIX: Event handlers like onMouseUp expect a function that can take an event argument.
+                        // Wrapping onDayPressEnd in an arrow function ensures it's called correctly without arguments.
+                        onMouseUp={memory ? () => onDayPressEnd() : undefined}
+                        onMouseLeave={memory ? () => onDayPressEnd() : undefined}
+                        onTouchStart={memory ? (e) => onDayPressStart(e, memory) : undefined}
+                        onTouchEnd={memory ? () => onDayPressEnd() : undefined}
+                        onContextMenu={memory ? (e) => { e.preventDefault(); onDayPressEnd(); } : undefined}
+                        className={`relative aspect-square border-t border-l border-border/50 rounded-lg transition-all duration-300 ease-in-out hover:scale-105 hover:shadow-premium focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 group overflow-hidden ${memory ? 'bg-secondary animate-pulse' : 'bg-card'}`}
                     >
                          {memory ? (
                              <>
@@ -128,10 +139,22 @@ const HomePage: React.FC = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [isSwitchingMonth, setIsSwitchingMonth] = useState(false);
   const [isNavigating, setIsNavigating] = useState(false);
+  const [zoomPreview, setZoomPreview] = useState<{ src: string; rect: DOMRect } | null>(null);
+  const longPressTimer = useRef<number>();
+  const isLongPress = useRef(false);
+  const location = ReactRouterDOM.useLocation();
+
 
   useEffect(() => {
     getMemories().then(setAllMemories);
   }, []);
+
+  useEffect(() => {
+    // Reset navigation lock when page changes
+    if (isNavigating) {
+      setIsNavigating(false);
+    }
+  }, [location]);
   
   const memoriesByDate = useMemo(() => {
     const map = new Map<string, Memory>();
@@ -157,9 +180,24 @@ const HomePage: React.FC = () => {
 
   const handleNextMonth = () => switchMonth(addMonths(currentDate, 1));
   const handlePrevMonth = () => switchMonth(subMonths(currentDate, 1));
+  
+  const handlePressStart = (e: React.MouseEvent | React.TouchEvent, memory: Memory) => {
+    isLongPress.current = false;
+    const target = e.currentTarget as HTMLElement;
+    const rect = target.getBoundingClientRect();
+
+    longPressTimer.current = window.setTimeout(() => {
+        isLongPress.current = true;
+        setZoomPreview({ src: memory.coverImageUrl, rect });
+    }, 300);
+  };
+
+  const handlePressEnd = () => {
+    clearTimeout(longPressTimer.current);
+  };
 
   const handleNavigate = (e: React.MouseEvent) => {
-    if (isNavigating) {
+    if (isNavigating || isLongPress.current) {
       e.preventDefault();
     } else {
       setIsNavigating(true);
@@ -180,8 +218,17 @@ const HomePage: React.FC = () => {
               memoriesByDate={memoriesByDate} 
               isSwitching={isSwitchingMonth} 
               onNavigate={handleNavigate}
+              onDayPressStart={handlePressStart}
+              onDayPressEnd={handlePressEnd}
             />
        </div>
+       {zoomPreview && (
+        <ZoomPreview
+          src={zoomPreview.src}
+          initialRect={zoomPreview.rect}
+          onClose={() => setZoomPreview(null)}
+        />
+      )}
     </div>
   );
 };

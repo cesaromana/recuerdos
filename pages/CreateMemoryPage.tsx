@@ -33,6 +33,7 @@ const CreateMemoryPage: React.FC = () => {
   const [coverImageIndex, setCoverImageIndex] = useState<number | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [isNavigating, setIsNavigating] = useState(false);
 
 
   useEffect(() => {
@@ -40,6 +41,18 @@ const CreateMemoryPage: React.FC = () => {
       files.forEach(f => URL.revokeObjectURL(f.previewUrl));
     };
   }, [files]);
+  
+  useEffect(() => {
+    if (isNavigating) {
+      setIsNavigating(false);
+    }
+  }, [location]);
+
+  const handleBackNavigation = () => {
+    if (isNavigating) return;
+    setIsNavigating(true);
+    navigate(-1);
+  };
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files) {
@@ -132,7 +145,8 @@ const CreateMemoryPage: React.FC = () => {
     <div className="max-w-4xl mx-auto animate-slideInUp">
       <Button 
         variant="ghost" 
-        onClick={() => navigate(-1)} 
+        onClick={handleBackNavigation}
+        disabled={isNavigating}
         className="mb-6 inline-flex items-center gap-2 text-sm font-medium text-foreground/70 hover:text-foreground"
       >
         <ChevronLeft className="w-4 h-4" />

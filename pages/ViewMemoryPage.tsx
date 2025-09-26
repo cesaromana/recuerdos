@@ -61,6 +61,7 @@ const Lightbox: React.FC<{
 const ViewMemoryPage: React.FC = () => {
   const { date } = ReactRouterDOM.useParams<{ date: string }>();
   const navigate = ReactRouterDOM.useNavigate();
+  const location = ReactRouterDOM.useLocation();
   const [memory, setMemory] = useState<Memory | null>(null);
   const [loading, setLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -76,6 +77,13 @@ const ViewMemoryPage: React.FC = () => {
         .finally(() => setLoading(false));
     }
   }, [date]);
+
+  useEffect(() => {
+    // Reset navigation lock when page changes
+    if (isNavigating) {
+      setIsNavigating(false);
+    }
+  }, [location]);
 
   const handleBackNavigation = () => {
     if (isNavigating) return;
@@ -206,7 +214,7 @@ const ViewMemoryPage: React.FC = () => {
                     {imageMedia.map((m, index) => (
                         <div 
                           key={m.id} 
-                          className="overflow-hidden rounded-xl shadow-md group cursor-pointer break-inside-avoid animate-scaleIn bg-secondary"
+                          className="overflow-hidden rounded-xl shadow-md group cursor-pointer break-inside-avoid animate-scaleIn bg-secondary animate-pulse"
                           style={{ animationDelay: `${index * 100}ms`, opacity: 0 }}
                           onClick={() => setLightboxIndex(index)}
                         >

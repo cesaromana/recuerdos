@@ -1,6 +1,6 @@
 import React from 'react';
 
-// Nuevo SVG de flor, con diseño simétrico, limpio y elegante.
+// Nuevo SVG de flor, con diseño simétrico, limpio y elegante de 6 pétalos.
 const FlowerIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg width="200" height="200" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
         <defs>
@@ -8,20 +8,21 @@ const FlowerIcon = (props: React.SVGProps<SVGSVGElement>) => (
                 <stop offset="0%" stopColor="#D94686" />
                 <stop offset="100%" stopColor="#F472B6" />
             </radialGradient>
-            {/* Un solo pétalo definido para garantizar la simetría */}
-            <path id="petal" d="M12 2 C 9 6, 9 11, 12 12 C 15 11, 15 6, 12 2 Z" />
+            {/* Un solo pétalo definido para garantizar la simetría, ahora con pétalos más gruesos */}
+            <path id="petal" d="M12 2 C 8.5 7, 8.5 12, 12 13 C 15.5 12, 15.5 7, 12 2 Z" />
             <filter id="flower_shadow" x="-50%" y="-50%" width="200%" height="200%">
                 <feDropShadow dx="0.5" dy="1" stdDeviation="0.8" floodColor="#000000" floodOpacity="0.2"/>
             </filter>
         </defs>
         <g style={{ filter: 'url(#flower_shadow)' }}>
             <g fill="url(#petalGradient)">
-                {/* Usamos el mismo pétalo rotado 5 veces para una simetría perfecta */}
+                {/* Usamos el mismo pétalo rotado 6 veces para una simetría perfecta */}
                 <use href="#petal" transform="rotate(0, 12, 12)" />
-                <use href="#petal" transform="rotate(72, 12, 12)" />
-                <use href="#petal" transform="rotate(144, 12, 12)" />
-                <use href="#petal" transform="rotate(216, 12, 12)" />
-                <use href="#petal" transform="rotate(288, 12, 12)" />
+                <use href="#petal" transform="rotate(60, 12, 12)" />
+                <use href="#petal" transform="rotate(120, 12, 12)" />
+                <use href="#petal" transform="rotate(180, 12, 12)" />
+                <use href="#petal" transform="rotate(240, 12, 12)" />
+                <use href="#petal" transform="rotate(300, 12, 12)" />
             </g>
         </g>
         <circle cx="12" cy="12" r="2.5" fill="#FBBF24"/>

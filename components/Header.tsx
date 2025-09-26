@@ -11,12 +11,22 @@ import EasterEggFlower from './EasterEggFlower';
 const Header: React.FC = () => {
   const { logout } = useAuth();
   const navigate = ReactRouterDOM.useNavigate();
+  const location = ReactRouterDOM.useLocation();
+  
   const [isHeartFilled, setIsHeartFilled] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [heartClickCount, setHeartClickCount] = useState(0);
   const [flowerState, setFlowerState] = useState<'hidden' | 'visible' | 'hiding'>('hidden');
+  const [isNavigating, setIsNavigating] = useState(false);
   const clickTimer = useRef<number | null>(null);
+
+  // Reset navigation lock when location changes
+  useEffect(() => {
+    if (isNavigating) {
+      setIsNavigating(false);
+    }
+  }, [location]);
 
   const handleHeartClick = () => {
     setIsHeartFilled(current => !current);
@@ -52,15 +62,26 @@ const Header: React.FC = () => {
     };
   }, []);
 
+  const handleLinkNavigation = (e: React.MouseEvent) => {
+    if (isNavigating) {
+      e.preventDefault();
+      return;
+    }
+    setIsNavigating(true);
+  };
+  
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (searchQuery.trim()) {
+    if (searchQuery.trim() && !isNavigating) {
+      setIsNavigating(true);
       navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
       setSearchQuery('');
     }
   };
 
   const handleCreateToday = () => {
+    if (isNavigating) return;
+    setIsNavigating(true);
     const today = format(new Date(), 'yyyy-MM-dd');
     navigate(`/crear?date=${today}`);
   };
@@ -81,7 +102,7 @@ const Header: React.FC = () => {
                 className={`h-7 w-7 text-accent ${isAnimating ? 'animate-heartbeat' : ''}`}
               />
           </button>
-          <ReactRouterDOM.Link to="/">
+          <ReactRouterDOM.Link to="/" onClick={handleLinkNavigation}>
               <h1 className="text-xl sm:text-2xl font-serif font-bold text-foreground whitespace-nowrap">Nuestro Diario</h1>
           </ReactRouterDOM.Link>
         </div>
@@ -101,21 +122,21 @@ const Header: React.FC = () => {
 
         <nav className="flex items-center gap-1 sm:gap-2 order-2 sm:order-3">
           {/* Botón para añadir recuerdo */}
-          <Button onClick={handleCreateToday} variant="ghost" size="icon" className="sm:hidden" aria-label="Añadir recuerdo">
+          <Button onClick={handleCreateToday} variant="ghost" size="icon" className="sm:hidden" aria-label="Añadir recuerdo" disabled={isNavigating}>
               <Plus className="h-6 w-6"/>
           </Button>
-          <Button onClick={handleCreateToday} variant="outline" size="sm" className="hidden sm:inline-flex items-center gap-2">
+          <Button onClick={handleCreateToday} variant="outline" size="sm" className="hidden sm:inline-flex items-center gap-2" disabled={isNavigating}>
               <Plus className="w-4 h-4" />
               Añadir
           </Button>
 
-          <ReactRouterDOM.Link to="/mapa">
-              <Button variant="ghost" size="icon" aria-label="Mapa">
+          <ReactRouterDOM.Link to="/mapa" onClick={handleLinkNavigation}>
+              <Button variant="ghost" size="icon" aria-label="Mapa" disabled={isNavigating}>
                   <Map className="h-5 w-5"/>
               </Button>
           </ReactRouterDOM.Link>
-          <ReactRouterDOM.Link to="/resumen">
-              <Button variant="ghost" size="icon" aria-label="Resúmenes">
+          <ReactRouterDOM.Link to="/resumen" onClick={handleLinkNavigation}>
+              <Button variant="ghost" size="icon" aria-label="Resúmenes" disabled={isNavigating}>
                   <BarChart className="h-5 w-5"/>
               </Button>
           </ReactRouterDOM.Link>
