@@ -77,6 +77,15 @@
               pulse: {
                 '50%': { opacity: '.5' },
               },
+              bloomIn: {
+                '0%': { transform: 'scale(0.3) rotate(-30deg)', opacity: '0' },
+                '60%': { transform: 'scale(1.1) rotate(10deg)', opacity: '1' },
+                '100%': { transform: 'scale(1) rotate(0deg)', opacity: '1' },
+              },
+              bloomOut: {
+                '0%': { transform: 'scale(1)', opacity: '1' },
+                '100%': { transform: 'scale(0.5)', opacity: '0' },
+              }
             },
             animation: {
               shake: 'shake 0.82s cubic-bezier(.36,.07,.19,.97) both',
@@ -85,6 +94,8 @@
               scaleIn: 'scaleIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards',
               heartbeat: 'heartbeat 1s ease-in-out',
               pulse: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+              bloomIn: 'bloomIn 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards',
+              bloomOut: 'bloomOut 1.5s ease-in-out forwards',
             },
           },
         },
