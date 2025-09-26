@@ -7,20 +7,21 @@ interface ZoomPreviewProps {
 }
 
 const ZoomPreview: React.FC<ZoomPreviewProps> = ({ src, initialRect, onClose }) => {
+  const [isClosing, setIsClosing] = useState(false);
   const [style, setStyle] = useState<React.CSSProperties>({
     position: 'fixed',
     top: `${initialRect.top}px`,
     left: `${initialRect.left}px`,
     width: `${initialRect.width}px`,
     height: `${initialRect.height}px`,
-    transition: 'all 300ms cubic-bezier(0.4, 0, 0.2, 1)',
+    transition: 'all 500ms cubic-bezier(0.4, 0, 0.2, 1)', // Slower, more graceful
     zIndex: 100,
   });
-
-  const [isZoomed, setIsZoomed] = useState(false);
+  const [bgOpacity, setBgOpacity] = useState(0);
 
   // Animate in
   useEffect(() => {
+    // We use a timeout of 0 or requestAnimationFrame to ensure the initial state is rendered before applying the transition.
     const timer = setTimeout(() => {
       const viewportWidth = window.innerWidth;
       const viewportHeight = window.innerHeight;
@@ -33,7 +34,8 @@ const ZoomPreview: React.FC<ZoomPreviewProps> = ({ src, initialRect, onClose }) 
         targetHeight = viewportHeight * 0.9;
         targetWidth = targetHeight * aspect;
       }
-
+      
+      setBgOpacity(1); // Start fading in the background
       setStyle(s => ({
         ...s,
         top: '50%',
@@ -42,15 +44,15 @@ const ZoomPreview: React.FC<ZoomPreviewProps> = ({ src, initialRect, onClose }) 
         height: `${targetHeight}px`,
         transform: 'translate(-50%, -50%)',
       }));
-      setIsZoomed(true);
-    }, 10);
+    }, 10); // A tiny delay ensures the transition happens
 
     return () => clearTimeout(timer);
   }, [initialRect]);
 
   // Animate out
   const handleClose = () => {
-    setIsZoomed(false);
+    setIsClosing(true);
+    setBgOpacity(0); // Start fading out the background
     setStyle(s => ({
       ...s,
       top: `${initialRect.top}px`,
@@ -62,23 +64,27 @@ const ZoomPreview: React.FC<ZoomPreviewProps> = ({ src, initialRect, onClose }) 
   };
   
   // Clean up after animation
-  const onTransitionEnd = () => {
-    if (!isZoomed) {
+  const onTransitionEnd = (e: React.TransitionEvent) => {
+    // Only trigger onClose when the component is in a closing state to avoid premature closing.
+    if (isClosing && e.target === e.currentTarget) {
       onClose();
     }
   };
 
   return (
     <div 
-        className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm animate-fadeInBg" 
+        className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm" 
         onClick={handleClose}
-        style={{ animationDuration: '300ms' }}
+        onTransitionEnd={onTransitionEnd}
+        style={{ 
+          opacity: bgOpacity, 
+          transition: 'opacity 500ms cubic-bezier(0.4, 0, 0.2, 1)' // Sync with image
+        }}
     >
       <img
         src={src}
         alt="Zoomed preview"
         style={style}
-        onTransitionEnd={onTransitionEnd}
         className="object-cover rounded-lg shadow-2xl"
       />
     </div>
