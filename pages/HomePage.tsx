@@ -142,7 +142,7 @@ const CalendarGrid: React.FC<{
                                 <span className={`font-medium text-sm md:text-base ${isCurrentDay ? 'text-accent font-bold' : 'text-foreground/70'}`}>{format(day, 'd')}</span>
                             </div>
                         )}
-                        {isCurrentDay && <div className="absolute inset-0 rounded-lg ring-2 ring-accent pointer-events-none"></div>}
+                        {isCurrentDay && <div className="absolute inset-0 rounded-lg border-2 border-accent pointer-events-none"></div>}
                     </ReactRouterDOM.Link>
                 );
             })}
@@ -157,7 +157,7 @@ const HomePage: React.FC = () => {
   const [isSwitchingMonth, setIsSwitchingMonth] = useState(false);
   const [isNavigating, setIsNavigating] = useState(false);
   const [zoomPreview, setZoomPreview] = useState<{ src: string; rect: DOMRect } | null>(null);
-  const longPressTimer = useRef<number>();
+  const longPressTimer = useRef<number | null>(null);
   const isLongPress = useRef(false);
   const location = ReactRouterDOM.useLocation();
 
@@ -211,9 +211,10 @@ const HomePage: React.FC = () => {
   };
 
   const handlePressEnd = () => {
-    // FIX: Explicitly use window.clearTimeout to avoid potential type conflicts with Node.js typings. A check is added to ensure a valid timer ID is passed.
-    if (longPressTimer.current) {
+    // FIX: Updated timer ref handling to be more robust and consistent with other components.
+    if (longPressTimer.current !== null) {
         window.clearTimeout(longPressTimer.current);
+        longPressTimer.current = null;
     }
   };
 
