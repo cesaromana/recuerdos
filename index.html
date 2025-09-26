@@ -11,6 +11,48 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      :root {
+        --background: 30 50% 98%; /* Soft Cream: #FFFBF5 */
+        --foreground: 0 0% 17%; /* Charcoal: #2C2C2C */
+        --card: 0 0% 100%; /* White */
+        --card-foreground: 0 0% 17%;
+        --popover: 0 0% 100%;
+        --popover-foreground: 0 0% 17%;
+        --primary: 0 0% 20%; /* Dark Charcoal: #333333 */
+        --primary-foreground: 0 0% 96%; /* Off-white: #F5F5F5 */
+        --secondary: 25 33% 95%; /* Lighter Cream: #F1EBE4 */
+        --secondary-foreground: 0 0% 20%;
+        --muted: 25 15% 85%; /* Muted Taupe: #D6CFCB */
+        --muted-foreground: 0 0% 35%; /* #5A5A5A */
+        --accent: 332 68% 56%; /* Vibrant Magenta: #D94686 */
+        --accent-foreground: 0 0% 100%;
+        --destructive: 0 72% 67%; /* #E57373 */
+        --border: 26 33% 92%; /* Soft Border: #EAE1D9 */
+        --input: 26 33% 92%;
+        --ring: 329 74% 83%; /* Lighter Magenta: #E57FAB */
+      }
+      .dark {
+        --background: 224 10% 10%; /* Dark Slate Gray */
+        --foreground: 210 20% 90%; /* Light Grayish Blue */
+        --card: 224 10% 13%;
+        --card-foreground: 210 20% 90%;
+        --popover: 224 10% 10%;
+        --popover-foreground: 210 20% 90%;
+        --primary: 210 20% 90%;
+        --primary-foreground: 224 10% 10%;
+        --secondary: 224 10% 18%; /* Slightly lighter gray */
+        --secondary-foreground: 210 20% 90%;
+        --muted: 224 10% 25%;
+        --muted-foreground: 210 20% 70%;
+        --accent: 332 70% 65%; /* #E0689C */
+        --accent-foreground: 0 0% 10%;
+        --destructive: 0 63% 51%;
+        --border: 224 10% 20%;
+        --input: 224 10% 20%;
+        --ring: 332 70% 65%;
+      }
+    </style>
     <script>
       tailwind.config = {
         darkMode: 'class',
@@ -21,24 +63,24 @@
               serif: ['Playfair Display', 'serif'],
             },
             colors: {
-              background: '#FFFBF5', // Soft Cream
-              foreground: '#2C2C2C', // Charcoal
-              card: '#FFFFFF',
-              'card-foreground': '#2C2C2C',
-              popover: '#FFFFFF',
-              'popover-foreground': '#2C2C2C',
-              primary: '#333333', // Dark Charcoal
-              'primary-foreground': '#F5F5F5',
-              secondary: '#F1EBE4', // Lighter Cream
-              'secondary-foreground': '#333333',
-              muted: '#D6CFCB', // Muted Taupe
-              'muted-foreground': '#5A5A5A',
-              accent: '#D94686', // Vibrant Magenta
-              'accent-foreground': '#FFFFFF', // White for better contrast on vibrant bg
-              destructive: '#E57373',
-              border: '#EAE1D9', // Soft Border
-              input: '#EAE1D9',
-              ring: '#E57FAB', // Lighter Vibrant Magenta for focus rings
+              background: 'hsl(var(--background))',
+              foreground: 'hsl(var(--foreground))',
+              card: 'hsl(var(--card))',
+              'card-foreground': 'hsl(var(--card-foreground))',
+              popover: 'hsl(var(--popover))',
+              'popover-foreground': 'hsl(var(--popover-foreground))',
+              primary: 'hsl(var(--primary))',
+              'primary-foreground': 'hsl(var(--primary-foreground))',
+              secondary: 'hsl(var(--secondary))',
+              'secondary-foreground': 'hsl(var(--secondary-foreground))',
+              muted: 'hsl(var(--muted))',
+              'muted-foreground': 'hsl(var(--muted-foreground))',
+              accent: 'hsl(var(--accent))',
+              'accent-foreground': 'hsl(var(--accent-foreground))',
+              destructive: 'hsl(var(--destructive))',
+              border: 'hsl(var(--border))',
+              input: 'hsl(var(--input))',
+              ring: 'hsl(var(--ring))',
             },
              borderRadius: {
               lg: "0.75rem",

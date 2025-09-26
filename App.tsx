@@ -2,6 +2,7 @@ import React from 'react';
 // FIX: Reverted to namespace import for react-router-dom to fix module resolution errors.
 import * as ReactRouterDOM from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { ThemeProvider } from './context/ThemeContext';
 import LoginPage from './pages/LoginPage';
 import HomePage from './pages/HomePage';
 import CreateMemoryPage from './pages/CreateMemoryPage';
@@ -26,11 +27,13 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
 
 const App: React.FC = () => {
   return (
-    <AuthProvider>
-      <ReactRouterDOM.HashRouter>
-        <Main />
-      </ReactRouterDOM.HashRouter>
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <ReactRouterDOM.HashRouter>
+          <Main />
+        </ReactRouterDOM.HashRouter>
+      </AuthProvider>
+    </ThemeProvider>
   );
 };
 

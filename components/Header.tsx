@@ -2,14 +2,16 @@ import React, { useState, useRef, useEffect } from 'react';
 // FIX: Reverted to namespace import for react-router-dom to fix module resolution errors.
 import * as ReactRouterDOM from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import Button from './Button';
-import { Heart, Search, Map, BarChart, Plus } from './Icons';
+import { Heart, Search, Map, BarChart, Plus, Sun, Moon } from './Icons';
 import { format } from 'date-fns/format';
 import EasterEggFlower from './EasterEggFlower';
 
 
 const Header: React.FC = () => {
   const { logout } = useAuth();
+  const { theme, setTheme } = useTheme();
   const navigate = ReactRouterDOM.useNavigate();
   const location = ReactRouterDOM.useLocation();
   
@@ -114,7 +116,7 @@ const Header: React.FC = () => {
               placeholder="Buscar recuerdos..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="h-9 w-full pl-10 pr-4 rounded-md border border-input bg-background/50 text-sm focus:ring-1 focus:ring-ring focus:outline-none"
+              className="h-9 w-full pl-10 pr-4 rounded-md border border-input bg-secondary/50 text-sm focus:ring-1 focus:ring-ring focus:outline-none"
             />
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           </form>
@@ -140,6 +142,15 @@ const Header: React.FC = () => {
                   <BarChart className="h-5 w-5"/>
               </Button>
           </ReactRouterDOM.Link>
+          <Button 
+            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} 
+            variant="ghost" 
+            size="icon"
+            aria-label={`Activar modo ${theme === 'dark' ? 'claro' : 'oscuro'}`}
+          >
+            <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+            <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+          </Button>
           <Button onClick={logout} variant="ghost" size="sm">
             Salir
           </Button>

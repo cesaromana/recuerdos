@@ -198,7 +198,8 @@ const HomePage: React.FC = () => {
   };
 
   const handlePressEnd = () => {
-    clearTimeout(longPressTimer.current);
+    // FIX: Explicitly use window.clearTimeout to avoid potential type conflicts with Node.js typings that can cause a "Expected 1 arguments, but got 0" error.
+    window.clearTimeout(longPressTimer.current);
   };
 
   const handleNavigate = (e: React.MouseEvent) => {
