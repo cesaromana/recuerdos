@@ -198,8 +198,10 @@ const HomePage: React.FC = () => {
   };
 
   const handlePressEnd = () => {
-    // FIX: Explicitly use window.clearTimeout to avoid potential type conflicts with Node.js typings that can cause a "Expected 1 arguments, but got 0" error.
-    window.clearTimeout(longPressTimer.current);
+    // FIX: Explicitly use window.clearTimeout to avoid potential type conflicts with Node.js typings. A check is added to ensure a valid timer ID is passed.
+    if (longPressTimer.current) {
+        window.clearTimeout(longPressTimer.current);
+    }
   };
 
   const handleNavigate = (e: React.MouseEvent) => {
@@ -213,7 +215,7 @@ const HomePage: React.FC = () => {
   return (
     <div className="container mx-auto max-w-7xl animate-slideInUp">
       <div 
-        className={`transition-all duration-500 ease-in-out ${zoomPreview ? 'blur-md brightness-50 scale-95' : 'blur-0 brightness-100 scale-100'}`}
+        className={`transition-all duration-500 ease-in-out ${zoomPreview ? 'blur-md brightness-50' : 'blur-0 brightness-100'}`}
       >
         <OnThisDay memories={allMemories} />
         <div className="bg-card p-2 sm:p-4 rounded-xl shadow-premium">
