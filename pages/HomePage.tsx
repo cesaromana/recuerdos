@@ -189,10 +189,11 @@ const HomePage: React.FC = () => {
   const handlePressStart = (e: React.MouseEvent | React.TouchEvent, memory: Memory) => {
     isLongPress.current = false;
     const target = e.currentTarget as HTMLElement;
-    const rect = target.getBoundingClientRect();
 
     longPressTimer.current = window.setTimeout(() => {
         isLongPress.current = true;
+        // Capturamos el rect DENTRO del timeout para obtener la posición más actualizada
+        const rect = target.getBoundingClientRect();
         setZoomPreview({ src: memory.coverImageUrl, rect });
     }, 300);
   };
@@ -213,10 +214,8 @@ const HomePage: React.FC = () => {
   };
 
   return (
-    <div className="container mx-auto max-w-7xl animate-slideInUp">
-      <div 
-        className={`transition-all duration-500 ease-in-out ${zoomPreview ? 'blur-md brightness-50' : 'blur-0 brightness-100'}`}
-      >
+    <>
+      <div className="container mx-auto max-w-7xl animate-slideInUp">
         <OnThisDay memories={allMemories} />
         <div className="bg-card p-2 sm:p-4 rounded-xl shadow-premium">
               <CalendarHeader
@@ -241,7 +240,7 @@ const HomePage: React.FC = () => {
           onClose={() => setZoomPreview(null)}
         />
       )}
-    </div>
+    </>
   );
 };
 
