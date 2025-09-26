@@ -34,6 +34,11 @@ const EditMemoryPage: React.FC = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isNavigating, setIsNavigating] = useState(false);
+  const [loadedMedia, setLoadedMedia] = useState(new Set<string>());
+
+  const handleMediaLoad = (id: string) => {
+    setLoadedMedia(prev => new Set(prev).add(id));
+  };
 
   useEffect(() => {
     if (dateParam) {
@@ -182,15 +187,31 @@ const EditMemoryPage: React.FC = () => {
                 <div className="space-y-4">
                   <p className="font-medium text-foreground/90">Galería actual:</p>
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                      {allMediaForDisplay.map((m) => (
-                          <div key={m.id} className="relative group animate-scaleIn rounded-lg overflow-hidden bg-secondary">
-                              {m.type.startsWith('image/') ? (
-                                  <img src={m.url} alt="Preview" className="w-full h-32 object-cover" />
-                              ) : (
-                                  <video src={m.url} muted loop autoPlay playsInline className="w-full h-32 object-cover" />
-                              )}
-                          </div>
-                      ))}
+                      {allMediaForDisplay.map((m) => {
+                          const hasLoaded = loadedMedia.has(m.id);
+                          return (
+                            <div key={m.id} className={`relative group animate-scaleIn rounded-lg overflow-hidden ${!hasLoaded ? 'bg-secondary animate-pulse' : ''}`}>
+                                {m.type.startsWith('image/') ? (
+                                    <img 
+                                      src={m.url} 
+                                      alt="Preview" 
+                                      onLoad={() => handleMediaLoad(m.id)}
+                                      className={`w-full h-32 object-cover transition-opacity duration-500 ${hasLoaded ? 'opacity-100' : 'opacity-0'}`}
+                                    />
+                                ) : (
+                                    <video 
+                                      src={m.url} 
+                                      muted 
+                                      loop 
+                                      autoPlay 
+                                      playsInline 
+                                      onCanPlay={() => handleMediaLoad(m.id)}
+                                      className={`w-full h-32 object-cover transition-opacity duration-500 ${hasLoaded ? 'opacity-100' : 'opacity-0'}`}
+                                    />
+                                )}
+                            </div>
+                          )
+                      })}
                   </div>
                 </div>
             )}
@@ -210,16 +231,25 @@ const EditMemoryPage: React.FC = () => {
               <div className="space-y-4">
                 <p className="font-medium text-foreground/90">Elige la imagen de portada:</p>
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                  {coverImageCandidates.map((m) => (
-                    <div key={m.id} className="relative cursor-pointer group animate-scaleIn bg-secondary rounded-lg" onClick={() => setCoverImageUrl(m.url)}>
-                      <img src={m.url} alt="Media preview" loading="lazy" className={`w-full h-32 object-cover rounded-lg transition-all ${coverImageUrl === m.url ? 'ring-4 ring-accent ring-offset-2' : 'group-hover:opacity-80'}`} />
-                      {coverImageUrl === m.url && (
-                        <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-lg">
-                          <span className="text-white font-bold text-sm">Portada</span>
-                        </div>
-                      )}
-                    </div>
-                  ))}
+                  {coverImageCandidates.map((m) => {
+                    const hasLoaded = loadedMedia.has(m.id);
+                    return (
+                      <div key={m.id} className={`relative cursor-pointer group animate-scaleIn rounded-lg ${!hasLoaded ? 'bg-secondary animate-pulse' : ''}`} onClick={() => setCoverImageUrl(m.url)}>
+                        <img 
+                          src={m.url} 
+                          alt="Media preview" 
+                          loading="lazy" 
+                          onLoad={() => handleMediaLoad(m.id)}
+                          className={`w-full h-32 object-cover rounded-lg transition-all ${coverImageUrl === m.url ? 'ring-4 ring-accent ring-offset-2' : 'group-hover:opacity-80'} ${hasLoaded ? 'opacity-100' : 'opacity-0'}`}
+                        />
+                        {coverImageUrl === m.url && (
+                          <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-lg">
+                            <span className="text-white font-bold text-sm">Portada</span>
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })}
                 </div>
               </div>
             )}

@@ -85,9 +85,14 @@ const CalendarGrid: React.FC<{
     onDayPressStart: (e: React.MouseEvent | React.TouchEvent, memory: Memory) => void,
     onDayPressEnd: () => void,
 }> = ({ days, memoriesByDate, isSwitching, onNavigate, onDayPressStart, onDayPressEnd }) => {
+    const [loadedImages, setLoadedImages] = useState(new Set<string>());
     const weekdays = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
     // FIX: Add a check to prevent calling getDay with undefined if the days array is empty.
     const firstDayOfMonth = days.length > 0 ? getDay(days[0]) : 0;
+
+    const handleImageLoad = (key: string) => {
+        setLoadedImages(prev => new Set(prev).add(key));
+    };
 
     return (
         <div className={`grid grid-cols-7 gap-1 md:gap-2 transition-opacity duration-700 ${isSwitching ? 'opacity-0' : 'opacity-100'}`}>
@@ -104,6 +109,7 @@ const CalendarGrid: React.FC<{
                 const memory = memoriesByDate.get(dateKey);
                 const isCurrentDay = isToday(day);
                 const targetUrl = memory ? `/recuerdo/${dateKey}` : `/crear?date=${dateKey}`;
+                const hasLoaded = loadedImages.has(dateKey);
                 
                 return (
                     <ReactRouterDOM.Link 
@@ -117,11 +123,17 @@ const CalendarGrid: React.FC<{
                         onTouchEnd={memory ? () => onDayPressEnd() : undefined}
                         onContextMenu={memory ? (e) => { e.preventDefault(); onDayPressEnd(); } : undefined}
                         style={{ WebkitTouchCallout: 'none', userSelect: 'none' }}
-                        className={`relative aspect-square border-t border-l border-border/50 rounded-lg transition-all duration-300 ease-in-out hover:scale-105 hover:shadow-premium focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 group overflow-hidden ${memory ? 'bg-secondary animate-pulse' : 'bg-card'}`}
+                        className={`relative aspect-square border-t border-l border-border/50 rounded-lg transition-all duration-300 ease-in-out hover:scale-105 hover:shadow-premium focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 group overflow-hidden ${memory && !hasLoaded ? 'bg-secondary animate-pulse' : memory ? '' : 'bg-card'}`}
                     >
                          {memory ? (
                              <>
-                                <img src={memory.coverImageUrl} alt={memory.title} loading="lazy" className="absolute inset-0 w-full h-full object-cover rounded-lg z-0 transition-transform duration-500 group-hover:scale-110"/>
+                                <img 
+                                    src={memory.coverImageUrl} 
+                                    alt={memory.title} 
+                                    loading="lazy" 
+                                    onLoad={() => handleImageLoad(dateKey)}
+                                    className={`absolute inset-0 w-full h-full object-cover rounded-lg z-0 transition-all duration-500 group-hover:scale-110 ${hasLoaded ? 'opacity-100' : 'opacity-0'}`}
+                                />
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent rounded-lg"></div>
                                 <span className="absolute bottom-1 right-1 md:bottom-2 md:right-2 text-white font-bold text-xs md:text-sm">{format(day, 'd')}</span>
                              </>

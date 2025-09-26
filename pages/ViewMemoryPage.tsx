@@ -71,7 +71,12 @@ const ViewMemoryPage: React.FC = () => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [mediaViewerIndex, setMediaViewerIndex] = useState<number | null>(null);
   const [isNavigating, setIsNavigating] = useState(false);
+  const [isHeroLoaded, setIsHeroLoaded] = useState(false);
+  const [loadedGallery, setLoadedGallery] = useState(new Set<string>());
 
+  const handleGalleryItemLoad = (id: string) => {
+    setLoadedGallery(prev => new Set(prev).add(id));
+  };
 
   useEffect(() => {
     if (date) {
@@ -176,8 +181,14 @@ const ViewMemoryPage: React.FC = () => {
         </div>
 
         {/* Hero Section */}
-        <div className="relative w-full h-80 md:h-[500px] rounded-2xl shadow-premium overflow-hidden mb-12 bg-secondary animate-pulse">
-            <img src={memory.coverImageUrl} alt={memory.title} loading="lazy" className="absolute inset-0 w-full h-full object-cover" />
+        <div className={`relative w-full h-80 md:h-[500px] rounded-2xl shadow-premium overflow-hidden mb-12 ${!isHeroLoaded ? 'bg-secondary animate-pulse' : ''}`}>
+            <img 
+                src={memory.coverImageUrl} 
+                alt={memory.title} 
+                loading="lazy" 
+                onLoad={() => setIsHeroLoaded(true)}
+                className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${isHeroLoaded ? 'opacity-100' : 'opacity-0'}`}
+            />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
             <div className="absolute bottom-0 left-0 p-6 md:p-10 text-white">
                 <p className="font-semibold capitalize mb-2">{formattedDate}</p>
@@ -214,20 +225,37 @@ const ViewMemoryPage: React.FC = () => {
             <div className="mt-16">
                 <h2 className="text-3xl font-serif font-bold text-foreground mb-8">Galería del día</h2>
                 <div className="columns-2 md:columns-3 lg:columns-4 gap-4 space-y-4">
-                    {memory.media.map((m, index) => (
-                        <div 
-                          key={m.id} 
-                          className="overflow-hidden rounded-xl shadow-md group cursor-pointer break-inside-avoid animate-scaleIn bg-secondary"
-                          style={{ animationDelay: `${index * 100}ms`, opacity: 0 }}
-                          onClick={() => setMediaViewerIndex(index)}
-                        >
-                          {m.type.startsWith('image/') ? (
-                             <img src={m.url} alt="Memory media" loading="lazy" className="w-full h-auto object-cover transition-transform duration-500 group-hover:scale-110" />
-                          ) : (
-                             <video src={m.url} loop muted autoPlay playsInline className="w-full h-auto object-cover transition-transform duration-500 group-hover:scale-110" />
-                          )}
-                        </div>
-                    ))}
+                    {memory.media.map((m, index) => {
+                        const hasLoaded = loadedGallery.has(m.id);
+                        return (
+                           <div 
+                              key={m.id} 
+                              className={`overflow-hidden rounded-xl shadow-md group cursor-pointer break-inside-avoid animate-scaleIn ${!hasLoaded ? 'bg-secondary animate-pulse' : ''}`}
+                              style={{ animationDelay: `${index * 100}ms`, opacity: 0 }}
+                              onClick={() => setMediaViewerIndex(index)}
+                            >
+                              {m.type.startsWith('image/') ? (
+                                 <img 
+                                    src={m.url} 
+                                    alt="Memory media" 
+                                    loading="lazy" 
+                                    onLoad={() => handleGalleryItemLoad(m.id)}
+                                    className={`w-full h-auto object-cover transition-all duration-500 group-hover:scale-110 ${hasLoaded ? 'opacity-100' : 'opacity-0'}`}
+                                 />
+                              ) : (
+                                 <video 
+                                    src={m.url} 
+                                    loop 
+                                    muted 
+                                    autoPlay 
+                                    playsInline 
+                                    onCanPlay={() => handleGalleryItemLoad(m.id)}
+                                    className={`w-full h-auto object-cover transition-all duration-500 group-hover:scale-110 ${hasLoaded ? 'opacity-100' : 'opacity-0'}`}
+                                 />
+                              )}
+                            </div>
+                        )
+                    })}
                 </div>
             </div>
         )}
