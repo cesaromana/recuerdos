@@ -33,7 +33,7 @@ const MapPage: React.FC = () => {
   return (
     <div className="max-w-4xl mx-auto animate-slideInUp">
       <CardHeader className="px-0">
-        <CardTitle>Mapa de Nuestras Aventuras</CardTitle>
+        <CardTitle>Mapa de nuestras Aventuras</CardTitle>
         <CardDescription>
           Un viaje cronológico por los lugares que han marcado nuestra historia.
         </CardDescription>

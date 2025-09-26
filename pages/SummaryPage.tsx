@@ -8,7 +8,7 @@ const SummaryPage: React.FC = () => {
         <CardHeader>
           <CardTitle>Resúmenes de Recuerdos</CardTitle>
           <CardDescription>
-            Revive nUestras aventuras con resúmenes mensuales y anuales.
+            Revive nuestras aventuras con resúmenes mensuales y anuales.
           </CardDescription>
         </CardHeader>
         <CardContent>
