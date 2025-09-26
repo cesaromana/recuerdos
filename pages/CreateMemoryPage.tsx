@@ -84,10 +84,10 @@ const CreateMemoryPage: React.FC = () => {
     setIsSaving(true);
     setUploadProgress(0);
 
-    const uploadedMedia: MemoryMedia[] = [];
-
-    // ETAPA 1: Subida de archivos
     try {
+      const uploadedMedia: MemoryMedia[] = [];
+
+      // ETAPA 1: Subida de archivos
       for (const [index, f] of files.entries()) {
         try {
           const blob = await upload(f.file.name, f.file, {
@@ -106,15 +106,8 @@ const CreateMemoryPage: React.FC = () => {
           throw new Error(`Error al subir el archivo ${f.file.name}: ${uploadError instanceof Error ? uploadError.message : String(uploadError)}`);
         }
       }
-    } catch (error) {
-        alert(error instanceof Error ? error.message : String(error));
-        setIsSaving(false);
-        setUploadProgress(0);
-        return; // Detener la ejecución si la subida falla
-    }
-
-    // ETAPA 2: Guardado en la base de datos
-    try {
+    
+      // ETAPA 2: Guardado en la base de datos
       const coverImageUrl = uploadedMedia[coverImageIndex].url;
 
       await addMemory({ 
@@ -127,10 +120,11 @@ const CreateMemoryPage: React.FC = () => {
       });
       
       navigate('/');
-    } catch (dbError) {
-      alert(`Error al guardar los datos en la base de datos: ${dbError instanceof Error ? dbError.message : String(dbError)}`);
+    } catch (error) {
+      alert(`Ocurrió un error: ${error instanceof Error ? error.message : String(error)}`);
     } finally {
       setIsSaving(false);
+      setUploadProgress(0);
     }
   };
 

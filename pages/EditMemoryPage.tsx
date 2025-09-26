@@ -69,10 +69,10 @@ const EditMemoryPage: React.FC = () => {
     }
 
     setIsSaving(true);
-    let newUploadedMedia: MemoryMedia[] = [];
-
-    // ETAPA 1: Subida de nuevos archivos (si los hay)
+    
     try {
+        let newUploadedMedia: MemoryMedia[] = [];
+        // ETAPA 1: Subida de nuevos archivos (si los hay)
         if(newFiles.length > 0) {
              for (const [index, f] of newFiles.entries()) {
                 try {
@@ -91,14 +91,8 @@ const EditMemoryPage: React.FC = () => {
                 }
             }
         }
-    } catch (error) {
-        alert(error instanceof Error ? error.message : String(error));
-        setIsSaving(false);
-        return; // Detener la ejecución si la subida falla
-    }
     
-    // ETAPA 2: Actualización en la base de datos
-    try {
+        // ETAPA 2: Actualización en la base de datos
         const allMedia = [...existingMedia, ...newUploadedMedia];
         
         await updateMemory({
@@ -112,8 +106,8 @@ const EditMemoryPage: React.FC = () => {
         });
         
         navigate(`/recuerdo/${date}`);
-    } catch (dbError) {
-        alert(`Error al guardar los cambios en la base de datos: ${dbError instanceof Error ? dbError.message : String(dbError)}`);
+    } catch (error) {
+        alert(`Ocurrió un error al guardar los cambios: ${error instanceof Error ? error.message : String(error)}`);
     } finally {
         setIsSaving(false);
     }
@@ -181,8 +175,8 @@ const EditMemoryPage: React.FC = () => {
                 <p className="font-medium text-foreground/90">Elige la imagen de portada:</p>
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                   {allMediaForSelection.map((m) => m.type.startsWith('image/') && (
-                    <div key={m.id} className="relative cursor-pointer group animate-scaleIn" onClick={() => setCoverImageUrl(m.url)}>
-                      <img src={m.url} alt="Media preview" className={`w-full h-32 object-cover rounded-lg transition-all ${coverImageUrl === m.url ? 'ring-4 ring-accent ring-offset-2' : 'group-hover:opacity-80'}`} />
+                    <div key={m.id} className="relative cursor-pointer group animate-scaleIn bg-secondary rounded-lg" onClick={() => setCoverImageUrl(m.url)}>
+                      <img src={m.url} alt="Media preview" loading="lazy" className={`w-full h-32 object-cover rounded-lg transition-all ${coverImageUrl === m.url ? 'ring-4 ring-accent ring-offset-2' : 'group-hover:opacity-80'}`} />
                       {coverImageUrl === m.url && (
                         <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-lg">
                           <span className="text-white font-bold text-sm">Portada</span>
@@ -196,6 +190,7 @@ const EditMemoryPage: React.FC = () => {
           </CardContent>
           <CardFooter>
             <Button type="submit" disabled={isSaving} className="w-full md:w-auto ml-auto bg-accent text-accent-foreground hover:bg-accent/90">
+              {isSaving ? <LoadingSpinner className="w-5 h-5 mr-2" /> : null}
               {isSaving ? 'Guardando cambios...' : 'Guardar Cambios'}
             </Button>
           </CardFooter>

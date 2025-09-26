@@ -12,7 +12,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 // NOTE: This is a client-side simulation of authentication.
 // In a real application, the password check and session management (e.g., setting a secure, HttpOnly cookie)
 // should be handled on the server-side for security.
-const CORRECT_PASSWORD = '279'; 
+const CORRECT_PASSWORD = '269'; 
 const SESSION_KEY = 'nuestro-diario-session';
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {

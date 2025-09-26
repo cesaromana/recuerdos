@@ -65,6 +65,7 @@ const ViewMemoryPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const [isNavigating, setIsNavigating] = useState(false);
 
 
   useEffect(() => {
@@ -75,6 +76,20 @@ const ViewMemoryPage: React.FC = () => {
         .finally(() => setLoading(false));
     }
   }, [date]);
+
+  const handleBackNavigation = () => {
+    if (isNavigating) return;
+    setIsNavigating(true);
+    navigate(-1);
+  };
+
+  const handleEditNavigation = (e: React.MouseEvent) => {
+    if (isNavigating) {
+      e.preventDefault();
+      return;
+    }
+    setIsNavigating(true);
+  };
   
   const handleDelete = async () => {
     if (memory && window.confirm('¿Estás seguro de que quieres eliminar este recuerdo? Esta acción no se puede deshacer y borrará todas las fotos asociadas.')) {
@@ -127,13 +142,18 @@ const ViewMemoryPage: React.FC = () => {
       )}
       <div className="max-w-6xl mx-auto animate-slideInUp">
         <div className="flex justify-between items-center mb-8 flex-wrap gap-4">
-            <Button variant="ghost" onClick={() => navigate(-1)} className="inline-flex items-center gap-2 text-sm font-medium text-foreground/70 hover:text-foreground">
+            <Button variant="ghost" onClick={handleBackNavigation} disabled={isNavigating} className="inline-flex items-center gap-2 text-sm font-medium text-foreground/70 hover:text-foreground">
               <ChevronLeft className="w-4 h-4" />
               Volver al Diario
             </Button>
             <div className="flex items-center gap-2">
-                <ReactRouterDOM.Link to={`/editar/${memory.date}`}>
-                    <Button variant="outline" size="sm" className="flex items-center gap-2">
+                <ReactRouterDOM.Link 
+                  to={`/editar/${memory.date}`}
+                  onClick={handleEditNavigation}
+                  aria-disabled={isNavigating}
+                  className={isNavigating ? 'pointer-events-none' : ''}
+                >
+                    <Button variant="outline" size="sm" className="flex items-center gap-2" disabled={isNavigating}>
                         <Edit className="w-4 h-4" /> Editar
                     </Button>
                 </ReactRouterDOM.Link>
@@ -145,8 +165,8 @@ const ViewMemoryPage: React.FC = () => {
         </div>
 
         {/* Hero Section */}
-        <div className="relative w-full h-80 md:h-[500px] rounded-2xl shadow-premium overflow-hidden mb-12">
-            <img src={memory.coverImageUrl} alt={memory.title} className="absolute inset-0 w-full h-full object-cover" />
+        <div className="relative w-full h-80 md:h-[500px] rounded-2xl shadow-premium overflow-hidden mb-12 bg-secondary animate-pulse">
+            <img src={memory.coverImageUrl} alt={memory.title} loading="lazy" className="absolute inset-0 w-full h-full object-cover" />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
             <div className="absolute bottom-0 left-0 p-6 md:p-10 text-white">
                 <p className="font-semibold capitalize mb-2">{formattedDate}</p>
@@ -186,11 +206,11 @@ const ViewMemoryPage: React.FC = () => {
                     {imageMedia.map((m, index) => (
                         <div 
                           key={m.id} 
-                          className="overflow-hidden rounded-xl shadow-md group cursor-pointer break-inside-avoid animate-scaleIn"
+                          className="overflow-hidden rounded-xl shadow-md group cursor-pointer break-inside-avoid animate-scaleIn bg-secondary"
                           style={{ animationDelay: `${index * 100}ms`, opacity: 0 }}
                           onClick={() => setLightboxIndex(index)}
                         >
-                            <img src={m.url} alt="Memory media" className="w-full h-auto object-cover transition-transform duration-500 group-hover:scale-110" />
+                            <img src={m.url} alt="Memory media" loading="lazy" className="w-full h-auto object-cover transition-transform duration-500 group-hover:scale-110" />
                         </div>
                     ))}
                 </div>

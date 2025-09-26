@@ -71,7 +71,12 @@ const CalendarHeader: React.FC<{
   </div>
 );
 
-const CalendarGrid: React.FC<{ days: Date[], memoriesByDate: Map<string, Memory>, isSwitching: boolean }> = ({ days, memoriesByDate, isSwitching }) => {
+const CalendarGrid: React.FC<{ 
+    days: Date[], 
+    memoriesByDate: Map<string, Memory>, 
+    isSwitching: boolean,
+    onNavigate: (e: React.MouseEvent) => void 
+}> = ({ days, memoriesByDate, isSwitching, onNavigate }) => {
     const weekdays = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
     const firstDayOfMonth = getDay(days[0]);
 
@@ -92,15 +97,20 @@ const CalendarGrid: React.FC<{ days: Date[], memoriesByDate: Map<string, Memory>
                 const targetUrl = memory ? `/recuerdo/${dateKey}` : `/crear?date=${dateKey}`;
                 
                 return (
-                    <ReactRouterDOM.Link to={targetUrl} key={day.toString()} className="relative aspect-square border-t border-l border-border/50 rounded-lg transition-all duration-300 ease-in-out hover:scale-105 hover:shadow-premium focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 group overflow-hidden">
+                    <ReactRouterDOM.Link 
+                        to={targetUrl} 
+                        key={day.toString()} 
+                        onClick={onNavigate}
+                        className={`relative aspect-square border-t border-l border-border/50 rounded-lg transition-all duration-300 ease-in-out hover:scale-105 hover:shadow-premium focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 group overflow-hidden ${memory ? 'bg-secondary' : 'bg-card'}`}
+                    >
                          {memory ? (
                              <>
-                                <img src={memory.coverImageUrl} alt={memory.title} className="absolute inset-0 w-full h-full object-cover rounded-lg z-0 transition-transform duration-500 group-hover:scale-110"/>
+                                <img src={memory.coverImageUrl} alt={memory.title} loading="lazy" className="absolute inset-0 w-full h-full object-cover rounded-lg z-0 transition-transform duration-500 group-hover:scale-110"/>
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent rounded-lg"></div>
                                 <span className="absolute bottom-1 right-1 md:bottom-2 md:right-2 text-white font-bold text-xs md:text-sm">{format(day, 'd')}</span>
                              </>
                         ) : (
-                            <div className="flex items-start justify-end p-2 h-full bg-card rounded-lg">
+                            <div className="flex items-start justify-end p-2 h-full rounded-lg">
                                 <span className={`font-medium text-sm md:text-base ${isCurrentDay ? 'text-accent font-bold' : 'text-foreground/70'}`}>{format(day, 'd')}</span>
                             </div>
                         )}
@@ -117,7 +127,7 @@ const HomePage: React.FC = () => {
   const [allMemories, setAllMemories] = useState<Memory[]>([]);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [isSwitchingMonth, setIsSwitchingMonth] = useState(false);
-  const navigate = ReactRouterDOM.useNavigate();
+  const [isNavigating, setIsNavigating] = useState(false);
 
   useEffect(() => {
     getMemories().then(setAllMemories);
@@ -148,6 +158,14 @@ const HomePage: React.FC = () => {
   const handleNextMonth = () => switchMonth(addMonths(currentDate, 1));
   const handlePrevMonth = () => switchMonth(subMonths(currentDate, 1));
 
+  const handleNavigate = (e: React.MouseEvent) => {
+    if (isNavigating) {
+      e.preventDefault();
+    } else {
+      setIsNavigating(true);
+    }
+  };
+
   return (
     <div className="container mx-auto max-w-7xl animate-slideInUp">
       <OnThisDay memories={allMemories} />
@@ -157,7 +175,12 @@ const HomePage: React.FC = () => {
                 onPrevMonth={handlePrevMonth}
                 onNextMonth={handleNextMonth}
             />
-            <CalendarGrid days={daysInMonth} memoriesByDate={memoriesByDate} isSwitching={isSwitchingMonth} />
+            <CalendarGrid 
+              days={daysInMonth} 
+              memoriesByDate={memoriesByDate} 
+              isSwitching={isSwitchingMonth} 
+              onNavigate={handleNavigate}
+            />
        </div>
     </div>
   );
