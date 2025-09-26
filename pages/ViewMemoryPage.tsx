@@ -2,26 +2,26 @@ import React, { useState, useEffect, useCallback } from 'react';
 // FIX: Reverted to namespace import for react-router-dom to fix module resolution errors.
 import * as ReactRouterDOM from 'react-router-dom';
 import { getMemoryByDate } from '../services/memoryService';
-import type { Memory } from '../types';
+import type { Memory, MemoryMedia } from '../types';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale/es';
 import Button from '../components/Button';
 import { ChevronLeft, LoadingSpinner, Edit, Trash, MapPin, X, ChevronRight } from '../components/Icons';
 
-const Lightbox: React.FC<{
-  images: { url: string; type: string }[];
+const MediaViewer: React.FC<{
+  media: MemoryMedia[];
   startIndex: number;
   onClose: () => void;
-}> = ({ images, startIndex, onClose }) => {
+}> = ({ media, startIndex, onClose }) => {
   const [currentIndex, setCurrentIndex] = useState(startIndex);
 
   const goToPrevious = useCallback(() => {
-    setCurrentIndex(prevIndex => (prevIndex === 0 ? images.length - 1 : prevIndex - 1));
-  }, [images.length]);
+    setCurrentIndex(prevIndex => (prevIndex === 0 ? media.length - 1 : prevIndex - 1));
+  }, [media.length]);
 
   const goToNext = useCallback(() => {
-    setCurrentIndex(prevIndex => (prevIndex === images.length - 1 ? 0 : prevIndex + 1));
-  }, [images.length]);
+    setCurrentIndex(prevIndex => (prevIndex === media.length - 1 ? 0 : prevIndex + 1));
+  }, [media.length]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -33,17 +33,21 @@ const Lightbox: React.FC<{
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [onClose, goToPrevious, goToNext]);
   
-  const image = images[currentIndex];
+  const currentItem = media[currentIndex];
 
   return (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center animate-scaleIn" onClick={onClose}>
       <div className="relative w-full h-full max-w-4xl max-h-4/5" onClick={e => e.stopPropagation()}>
-        <img src={image.url} alt="Vista ampliada" className="w-full h-full object-contain" />
+        {currentItem.type.startsWith('image/') ? (
+          <img src={currentItem.url} alt="Vista ampliada" className="w-full h-full object-contain" />
+        ) : (
+          <video src={currentItem.url} controls autoPlay className="w-full h-full object-contain" />
+        )}
       </div>
        <Button variant="ghost" size="icon" className="absolute top-4 right-4 text-white hover:text-white" onClick={onClose}>
         <X className="w-8 h-8"/>
       </Button>
-       {images.length > 1 && (
+       {media.length > 1 && (
         <>
           <Button variant="ghost" size="icon" className="absolute left-4 top-1/2 -translate-y-1/2 text-white hover:text-white" onClick={goToPrevious}>
             <ChevronLeft className="w-8 h-8"/>
@@ -65,7 +69,7 @@ const ViewMemoryPage: React.FC = () => {
   const [memory, setMemory] = useState<Memory | null>(null);
   const [loading, setLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const [mediaViewerIndex, setMediaViewerIndex] = useState<number | null>(null);
   const [isNavigating, setIsNavigating] = useState(false);
 
 
@@ -137,15 +141,14 @@ const ViewMemoryPage: React.FC = () => {
   }
   
   const formattedDate = format(new Date(memory.date.replace(/-/g, '/')), 'EEEE, dd \'de\' MMMM \'de\' yyyy', { locale: es });
-  const imageMedia = memory.media.filter(m => m.type === 'image');
 
   return (
     <>
-      {lightboxIndex !== null && (
-        <Lightbox 
-          images={imageMedia} 
-          startIndex={lightboxIndex}
-          onClose={() => setLightboxIndex(null)}
+      {mediaViewerIndex !== null && (
+        <MediaViewer 
+          media={memory.media} 
+          startIndex={mediaViewerIndex}
+          onClose={() => setMediaViewerIndex(null)}
         />
       )}
       <div className="max-w-6xl mx-auto animate-slideInUp">
@@ -207,18 +210,22 @@ const ViewMemoryPage: React.FC = () => {
         </div>
         
         {/* Gallery Section */}
-        {imageMedia.length > 0 && (
+        {memory.media.length > 0 && (
             <div className="mt-16">
                 <h2 className="text-3xl font-serif font-bold text-foreground mb-8">Galería del día</h2>
                 <div className="columns-2 md:columns-3 lg:columns-4 gap-4 space-y-4">
-                    {imageMedia.map((m, index) => (
+                    {memory.media.map((m, index) => (
                         <div 
                           key={m.id} 
-                          className="overflow-hidden rounded-xl shadow-md group cursor-pointer break-inside-avoid animate-scaleIn bg-secondary animate-pulse"
+                          className="overflow-hidden rounded-xl shadow-md group cursor-pointer break-inside-avoid animate-scaleIn bg-secondary"
                           style={{ animationDelay: `${index * 100}ms`, opacity: 0 }}
-                          onClick={() => setLightboxIndex(index)}
+                          onClick={() => setMediaViewerIndex(index)}
                         >
-                            <img src={m.url} alt="Memory media" loading="lazy" className="w-full h-auto object-cover transition-transform duration-500 group-hover:scale-110" />
+                          {m.type.startsWith('image/') ? (
+                             <img src={m.url} alt="Memory media" loading="lazy" className="w-full h-auto object-cover transition-transform duration-500 group-hover:scale-110" />
+                          ) : (
+                             <video src={m.url} loop muted autoPlay playsInline className="w-full h-auto object-cover transition-transform duration-500 group-hover:scale-110" />
+                          )}
                         </div>
                     ))}
                 </div>

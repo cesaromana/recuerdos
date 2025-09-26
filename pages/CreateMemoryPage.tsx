@@ -60,9 +60,13 @@ const CreateMemoryPage: React.FC = () => {
         file,
         previewUrl: URL.createObjectURL(file)
       }));
+      const currentImageFilesCount = files.filter(f => f.file.type.startsWith('image/')).length;
       setFiles(prev => [...prev, ...newFiles]);
-      if(coverImageIndex === null && newFiles.length > 0) {
-        setCoverImageIndex(files.length);
+      if(coverImageIndex === null && newFiles.some(f => f.file.type.startsWith('image/'))) {
+        const firstNewImageIndex = newFiles.findIndex(f => f.file.type.startsWith('image/'));
+        if (firstNewImageIndex !== -1) {
+          setCoverImageIndex(files.length + firstNewImageIndex);
+        }
       }
     }
   };
@@ -76,8 +80,11 @@ const CreateMemoryPage: React.FC = () => {
         previewUrl: URL.createObjectURL(file)
       }));
        setFiles(prev => [...prev, ...newFiles]);
-       if(coverImageIndex === null && newFiles.length > 0) {
-        setCoverImageIndex(files.length);
+       if(coverImageIndex === null && newFiles.some(f => f.file.type.startsWith('image/'))) {
+         const firstNewImageIndex = newFiles.findIndex(f => f.file.type.startsWith('image/'));
+         if (firstNewImageIndex !== -1) {
+            setCoverImageIndex(files.length + firstNewImageIndex);
+         }
       }
     }
   };
@@ -90,7 +97,7 @@ const CreateMemoryPage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title || !description || files.length === 0 || coverImageIndex === null) {
-      alert('Por favor, completa todos los campos y sube al menos una imagen.');
+      alert('Por favor, completa todos los campos y sube al menos una imagen para la portada.');
       return;
     }
 
@@ -100,7 +107,6 @@ const CreateMemoryPage: React.FC = () => {
     try {
       const uploadedMedia: MemoryMedia[] = [];
 
-      // ETAPA 1: Subida de archivos
       for (const [index, f] of files.entries()) {
         try {
           const blob = await upload(f.file.name, f.file, {
@@ -120,7 +126,6 @@ const CreateMemoryPage: React.FC = () => {
         }
       }
     
-      // ETAPA 2: Guardado en la base de datos
       const coverImageUrl = uploadedMedia[coverImageIndex].url;
 
       await addMemory({ 
@@ -189,13 +194,29 @@ const CreateMemoryPage: React.FC = () => {
                 >
                     <UploadCloud className="w-10 h-10 text-muted-foreground mb-3"/>
                     <p className="font-semibold text-foreground/80">Haz clic o arrastra archivos aquí</p>
-                    <p className="text-sm text-muted-foreground">Imágenes, videos o audios</p>
+                    <p className="text-sm text-muted-foreground">Sube imágenes, GIFs o videos</p>
                     <input type="file" ref={fileInputRef} onChange={handleFileChange} multiple className="hidden" accept="image/*,video/*,audio/*"/>
                 </div>
             </div>
             {files.length > 0 && (
+                <div className="space-y-4">
+                  <p className="font-medium text-foreground/90">Archivos subidos:</p>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                      {files.map((f, index) => (
+                          <div key={index} className="relative group animate-scaleIn rounded-lg overflow-hidden">
+                              {f.file.type.startsWith('image/') ? (
+                                  <img src={f.previewUrl} alt="Preview" className="w-full h-32 object-cover" />
+                              ) : (
+                                  <video src={f.previewUrl} muted loop autoPlay playsInline className="w-full h-32 object-cover" />
+                              )}
+                          </div>
+                      ))}
+                  </div>
+                </div>
+            )}
+            {files.some(f => f.file.type.startsWith('image/')) && (
               <div className="space-y-4">
-                <p className="font-medium text-foreground/90">Elige la imagen de portada:</p>
+                <p className="font-medium text-foreground/90">Elige la imagen de portada (solo imágenes fijas):</p>
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                   {files.map((f, index) => f.file.type.startsWith('image/') && (
                     <div key={index} className="relative cursor-pointer group animate-scaleIn" onClick={() => setCoverImageIndex(index)}>

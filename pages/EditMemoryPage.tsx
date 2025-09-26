@@ -127,10 +127,13 @@ const EditMemoryPage: React.FC = () => {
     }
   };
   
-  const allMediaForSelection = [
+  const allMediaForDisplay = [
     ...existingMedia, 
-    ...newFiles.map(f => ({ id: f.file.name, url: f.previewUrl, type: 'image' as const }))
+    ...newFiles.map(f => ({ id: f.file.name, url: f.previewUrl, type: f.file.type }))
   ];
+  
+  const coverImageCandidates = allMediaForDisplay.filter(m => m.type.startsWith('image/'));
+
 
   if (isLoading) {
     return <div className="flex justify-center items-center h-64"><LoadingSpinner className="w-12 h-12 text-accent" /></div>;
@@ -174,8 +177,26 @@ const EditMemoryPage: React.FC = () => {
                 <label htmlFor="location" className="font-medium text-foreground/90">Ubicación (Opcional)</label>
                 <Input id="location" value={locationText} onChange={e => setLocationText(e.target.value)} placeholder="Ej: Parque Central, Ciudad" />
               </div>
+            
+            {allMediaForDisplay.length > 0 && (
+                <div className="space-y-4">
+                  <p className="font-medium text-foreground/90">Galería actual:</p>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                      {allMediaForDisplay.map((m) => (
+                          <div key={m.id} className="relative group animate-scaleIn rounded-lg overflow-hidden bg-secondary">
+                              {m.type.startsWith('image/') ? (
+                                  <img src={m.url} alt="Preview" className="w-full h-32 object-cover" />
+                              ) : (
+                                  <video src={m.url} muted loop autoPlay playsInline className="w-full h-32 object-cover" />
+                              )}
+                          </div>
+                      ))}
+                  </div>
+                </div>
+            )}
+
              <div className="space-y-2">
-                <label className="font-medium text-foreground/90">Añadir más fotos</label>
+                <label className="font-medium text-foreground/90">Añadir más fotos o videos</label>
                  <div 
                     className="flex justify-center items-center flex-col w-full p-8 border-2 border-dashed border-input rounded-lg cursor-pointer transition-colors hover:bg-secondary hover:border-accent"
                     onClick={() => fileInputRef.current?.click()}
@@ -185,12 +206,12 @@ const EditMemoryPage: React.FC = () => {
                     <input type="file" ref={fileInputRef} onChange={handleFileChange} multiple className="hidden" accept="image/*,video/*,audio/*"/>
                 </div>
             </div>
-             {allMediaForSelection.length > 0 && (
+             {coverImageCandidates.length > 0 && (
               <div className="space-y-4">
                 <p className="font-medium text-foreground/90">Elige la imagen de portada:</p>
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                  {allMediaForSelection.map((m) => m.type.startsWith('image/') && (
-                    <div key={m.id} className="relative cursor-pointer group animate-scaleIn bg-secondary animate-pulse rounded-lg" onClick={() => setCoverImageUrl(m.url)}>
+                  {coverImageCandidates.map((m) => (
+                    <div key={m.id} className="relative cursor-pointer group animate-scaleIn bg-secondary rounded-lg" onClick={() => setCoverImageUrl(m.url)}>
                       <img src={m.url} alt="Media preview" loading="lazy" className={`w-full h-32 object-cover rounded-lg transition-all ${coverImageUrl === m.url ? 'ring-4 ring-accent ring-offset-2' : 'group-hover:opacity-80'}`} />
                       {coverImageUrl === m.url && (
                         <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-lg">

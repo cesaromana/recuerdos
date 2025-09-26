@@ -14,14 +14,12 @@ const ZoomPreview: React.FC<ZoomPreviewProps> = ({ src, initialRect, onClose }) 
     left: `${initialRect.left}px`,
     width: `${initialRect.width}px`,
     height: `${initialRect.height}px`,
-    transition: 'all 500ms cubic-bezier(0.4, 0, 0.2, 1)', // Slower, more graceful
+    transition: 'all 500ms cubic-bezier(0.4, 0, 0.2, 1)',
     zIndex: 100,
   });
-  const [bgOpacity, setBgOpacity] = useState(0);
 
   // Animate in
   useEffect(() => {
-    // We use a timeout of 0 or requestAnimationFrame to ensure the initial state is rendered before applying the transition.
     const timer = setTimeout(() => {
       const viewportWidth = window.innerWidth;
       const viewportHeight = window.innerHeight;
@@ -35,7 +33,6 @@ const ZoomPreview: React.FC<ZoomPreviewProps> = ({ src, initialRect, onClose }) 
         targetWidth = targetHeight * aspect;
       }
       
-      setBgOpacity(1); // Start fading in the background
       setStyle(s => ({
         ...s,
         top: '50%',
@@ -44,7 +41,7 @@ const ZoomPreview: React.FC<ZoomPreviewProps> = ({ src, initialRect, onClose }) 
         height: `${targetHeight}px`,
         transform: 'translate(-50%, -50%)',
       }));
-    }, 10); // A tiny delay ensures the transition happens
+    }, 10);
 
     return () => clearTimeout(timer);
   }, [initialRect]);
@@ -52,7 +49,6 @@ const ZoomPreview: React.FC<ZoomPreviewProps> = ({ src, initialRect, onClose }) 
   // Animate out
   const handleClose = () => {
     setIsClosing(true);
-    setBgOpacity(0); // Start fading out the background
     setStyle(s => ({
       ...s,
       top: `${initialRect.top}px`,
@@ -65,7 +61,6 @@ const ZoomPreview: React.FC<ZoomPreviewProps> = ({ src, initialRect, onClose }) 
   
   // Clean up after animation
   const onTransitionEnd = (e: React.TransitionEvent) => {
-    // Only trigger onClose when the component is in a closing state to avoid premature closing.
     if (isClosing && e.target === e.currentTarget) {
       onClose();
     }
@@ -73,19 +68,16 @@ const ZoomPreview: React.FC<ZoomPreviewProps> = ({ src, initialRect, onClose }) 
 
   return (
     <div 
-        className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm" 
+        className="fixed inset-0 z-50" 
         onClick={handleClose}
-        onTransitionEnd={onTransitionEnd}
-        style={{ 
-          opacity: bgOpacity, 
-          transition: 'opacity 500ms cubic-bezier(0.4, 0, 0.2, 1)' // Sync with image
-        }}
     >
       <img
         src={src}
         alt="Zoomed preview"
         style={style}
         className="object-cover rounded-lg shadow-2xl"
+        onTransitionEnd={onTransitionEnd}
+        onContextMenu={(e) => e.preventDefault()}
       />
     </div>
   );

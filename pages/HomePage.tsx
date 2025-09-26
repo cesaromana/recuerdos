@@ -3,8 +3,13 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import * as ReactRouterDOM from 'react-router-dom';
 import { getMemories } from '../services/memoryService';
 import type { Memory } from '../types';
-// FIX: Use subpath imports for date-fns functions that were causing errors.
-import { format, endOfMonth, eachDayOfInterval, getDay, addMonths, isToday } from 'date-fns';
+// FIX: Use subpath imports for all date-fns functions to ensure consistency and fix module resolution errors.
+import { addMonths } from 'date-fns/addMonths';
+import { eachDayOfInterval } from 'date-fns/eachDayOfInterval';
+import { endOfMonth } from 'date-fns/endOfMonth';
+import { format } from 'date-fns/format';
+import { getDay } from 'date-fns/getDay';
+import { isToday } from 'date-fns/isToday';
 import { startOfMonth } from 'date-fns/startOfMonth';
 import { subMonths } from 'date-fns/subMonths';
 // FIX: Use direct import for date-fns locale to fix module resolution error.
@@ -81,7 +86,8 @@ const CalendarGrid: React.FC<{
     onDayPressEnd: () => void,
 }> = ({ days, memoriesByDate, isSwitching, onNavigate, onDayPressStart, onDayPressEnd }) => {
     const weekdays = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
-    const firstDayOfMonth = getDay(days[0]);
+    // FIX: Add a check to prevent calling getDay with undefined if the days array is empty.
+    const firstDayOfMonth = days.length > 0 ? getDay(days[0]) : 0;
 
     return (
         <div className={`grid grid-cols-7 gap-1 md:gap-2 transition-opacity duration-700 ${isSwitching ? 'opacity-0' : 'opacity-100'}`}>
@@ -105,13 +111,12 @@ const CalendarGrid: React.FC<{
                         key={day.toString()} 
                         onClick={onNavigate}
                         onMouseDown={memory ? (e) => onDayPressStart(e, memory) : undefined}
-                        // FIX: Event handlers like onMouseUp expect a function that can take an event argument.
-                        // Wrapping onDayPressEnd in an arrow function ensures it's called correctly without arguments.
                         onMouseUp={memory ? () => onDayPressEnd() : undefined}
                         onMouseLeave={memory ? () => onDayPressEnd() : undefined}
                         onTouchStart={memory ? (e) => onDayPressStart(e, memory) : undefined}
                         onTouchEnd={memory ? () => onDayPressEnd() : undefined}
                         onContextMenu={memory ? (e) => { e.preventDefault(); onDayPressEnd(); } : undefined}
+                        style={{ WebkitTouchCallout: 'none', userSelect: 'none' }}
                         className={`relative aspect-square border-t border-l border-border/50 rounded-lg transition-all duration-300 ease-in-out hover:scale-105 hover:shadow-premium focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 group overflow-hidden ${memory ? 'bg-secondary animate-pulse' : 'bg-card'}`}
                     >
                          {memory ? (
@@ -206,22 +211,26 @@ const HomePage: React.FC = () => {
 
   return (
     <div className="container mx-auto max-w-7xl animate-slideInUp">
-      <OnThisDay memories={allMemories} />
-       <div className="bg-card p-2 sm:p-4 rounded-xl shadow-premium">
-            <CalendarHeader
-                currentDate={currentDate}
-                onPrevMonth={handlePrevMonth}
-                onNextMonth={handleNextMonth}
-            />
-            <CalendarGrid 
-              days={daysInMonth} 
-              memoriesByDate={memoriesByDate} 
-              isSwitching={isSwitchingMonth} 
-              onNavigate={handleNavigate}
-              onDayPressStart={handlePressStart}
-              onDayPressEnd={handlePressEnd}
-            />
-       </div>
+      <div 
+        className={`transition-all duration-500 ease-in-out ${zoomPreview ? 'blur-md brightness-50 scale-95' : 'blur-0 brightness-100 scale-100'}`}
+      >
+        <OnThisDay memories={allMemories} />
+        <div className="bg-card p-2 sm:p-4 rounded-xl shadow-premium">
+              <CalendarHeader
+                  currentDate={currentDate}
+                  onPrevMonth={handlePrevMonth}
+                  onNextMonth={handleNextMonth}
+              />
+              <CalendarGrid 
+                days={daysInMonth} 
+                memoriesByDate={memoriesByDate} 
+                isSwitching={isSwitchingMonth} 
+                onNavigate={handleNavigate}
+                onDayPressStart={handlePressStart}
+                onDayPressEnd={handlePressEnd}
+              />
+        </div>
+      </div>
        {zoomPreview && (
         <ZoomPreview
           src={zoomPreview.src}
