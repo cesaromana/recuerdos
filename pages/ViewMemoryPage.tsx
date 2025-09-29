@@ -38,7 +38,7 @@ const MediaViewer: React.FC<{
   return (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center animate-scaleIn" onClick={onClose}>
       <div className="relative w-full h-full max-w-4xl max-h-4/5" onClick={e => e.stopPropagation()}>
-        {currentItem.type.startsWith('image/') ? (
+        {currentItem.type === 'image' ? (
           <img src={currentItem.url} alt="Vista ampliada" className="w-full h-full object-contain" />
         ) : (
           <video src={currentItem.url} controls autoPlay className="w-full h-full object-contain" />
@@ -230,11 +230,11 @@ const ViewMemoryPage: React.FC = () => {
                         return (
                            <div 
                               key={m.id} 
-                              className={`overflow-hidden rounded-xl shadow-md group cursor-pointer break-inside-avoid animate-scaleIn ${!hasLoaded ? 'bg-secondary animate-pulse' : ''}`}
-                              style={{ animationDelay: `${index * 100}ms`, opacity: 0 }}
+                              className={`overflow-hidden rounded-xl shadow-md group cursor-pointer break-inside-avoid animate-scaleIn opacity-0 ${!hasLoaded ? 'bg-secondary animate-pulse' : ''}`}
+                              style={{ animationDelay: `${index * 100}ms` }}
                               onClick={() => setMediaViewerIndex(index)}
                             >
-                              {m.type.startsWith('image/') ? (
+                              {m.type === 'image' ? (
                                  <img 
                                     src={m.url} 
                                     alt="Memory media" 
