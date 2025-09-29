@@ -83,65 +83,63 @@ const EditMemoryPage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title || !description || !memoryId || !coverImageUrl) {
-        alert('Por favor, completa todos los campos requeridos.');
-        return;
+      alert('Por favor, completa todos los campos requeridos.');
+      return;
     }
 
     setIsSaving(true);
-    
+    let isSuccess = false;
+
     try {
-        const newUploadedMedia: MemoryMedia[] = [];
-        // Map to track preview URLs to their final uploaded Vercel Blob URLs
-        const newFileUrlMap = new Map<string, string>();
+      const newUploadedMedia: MemoryMedia[] = [];
+      const newFileUrlMap = new Map<string, string>();
 
-        // STAGE 1: Upload new files (if any)
-        if(newFiles.length > 0) {
-             for (const [index, f] of newFiles.entries()) {
-                try {
-                    const blob = await upload(f.file.name, f.file, {
-                        access: 'public',
-                        handleUploadUrl: '/api/upload',
-                    });
-                    
-                    const newMediaItem: MemoryMedia = {
-                        id: `${Date.now()}-${index}`,
-                        url: blob.url,
-                        type: f.file.type.startsWith('image/') ? 'image' : f.file.type.startsWith('video/') ? 'video' : 'audio'
-                    };
-                    newUploadedMedia.push(newMediaItem);
-                    // Store the mapping from the temporary preview URL to the final URL
-                    newFileUrlMap.set(f.previewUrl, newMediaItem.url);
+      // Stage 1: Upload new files
+      if (newFiles.length > 0) {
+        for (const [index, f] of newFiles.entries()) {
+          const blob = await upload(f.file.name, f.file, {
+            access: 'public',
+            handleUploadUrl: '/api/upload',
+          });
 
-                } catch (uploadError) {
-                    throw new Error(`Error al subir el nuevo archivo ${f.file.name}: ${uploadError instanceof Error ? uploadError.message : String(uploadError)}`);
-                }
-            }
+          const newMediaItem: MemoryMedia = {
+            id: `${Date.now()}-${index}`,
+            url: blob.url,
+            type: f.file.type.startsWith('image/') ? 'image' : f.file.type.startsWith('video/') ? 'video' : 'audio',
+          };
+          newUploadedMedia.push(newMediaItem);
+          newFileUrlMap.set(f.previewUrl, newMediaItem.url);
         }
-    
-        // STAGE 2: Update the database
-        const allMedia = [...existingMedia, ...newUploadedMedia];
-        
-        // Check if the current cover image URL is a temporary preview URL (blob) and update it.
-        let finalCoverImageUrl = coverImageUrl;
-        if (newFileUrlMap.has(coverImageUrl)) {
-          finalCoverImageUrl = newFileUrlMap.get(coverImageUrl)!;
-        }
-        
-        await updateMemory({
-            id: memoryId,
-            date,
-            title,
-            description,
-            location: locationText,
-            media: allMedia,
-            coverImageUrl: finalCoverImageUrl, // Use the final, correct cover image URL
-        });
-        
-        navigate(`/recuerdo/${date}`);
+      }
+
+      // Stage 2: Prepare final data
+      const allMedia = [...existingMedia, ...newUploadedMedia];
+      let finalCoverImageUrl = coverImageUrl;
+      if (newFileUrlMap.has(coverImageUrl)) {
+        finalCoverImageUrl = newFileUrlMap.get(coverImageUrl)!;
+      }
+
+      // Stage 3: Update the database
+      await updateMemory({
+        id: memoryId,
+        date,
+        title,
+        description,
+        location: locationText,
+        media: allMedia,
+        coverImageUrl: finalCoverImageUrl,
+      });
+      
+      isSuccess = true;
     } catch (error) {
-        alert(`Ocurrió un error al guardar los cambios: ${error instanceof Error ? error.message : String(error)}`);
-    } finally {
-        setIsSaving(false);
+      alert(`Ocurrió un error al guardar los cambios: ${error instanceof Error ? error.message : String(error)}`);
+      isSuccess = false;
+    }
+
+    // Stage 4: Finalize UI state and navigate on success
+    setIsSaving(false);
+    if (isSuccess) {
+      navigate(`/recuerdo/${date}`);
     }
   };
   
