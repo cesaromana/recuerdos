@@ -90,8 +90,11 @@ const EditMemoryPage: React.FC = () => {
     setIsSaving(true);
     
     try {
-        let newUploadedMedia: MemoryMedia[] = [];
-        // ETAPA 1: Subida de nuevos archivos (si los hay)
+        const newUploadedMedia: MemoryMedia[] = [];
+        // Map to track preview URLs to their final uploaded Vercel Blob URLs
+        const newFileUrlMap = new Map<string, string>();
+
+        // STAGE 1: Upload new files (if any)
         if(newFiles.length > 0) {
              for (const [index, f] of newFiles.entries()) {
                 try {
@@ -100,19 +103,29 @@ const EditMemoryPage: React.FC = () => {
                         handleUploadUrl: '/api/upload',
                     });
                     
-                    newUploadedMedia.push({
+                    const newMediaItem: MemoryMedia = {
                         id: `${Date.now()}-${index}`,
                         url: blob.url,
                         type: f.file.type.startsWith('image/') ? 'image' : f.file.type.startsWith('video/') ? 'video' : 'audio'
-                    });
+                    };
+                    newUploadedMedia.push(newMediaItem);
+                    // Store the mapping from the temporary preview URL to the final URL
+                    newFileUrlMap.set(f.previewUrl, newMediaItem.url);
+
                 } catch (uploadError) {
                     throw new Error(`Error al subir el nuevo archivo ${f.file.name}: ${uploadError instanceof Error ? uploadError.message : String(uploadError)}`);
                 }
             }
         }
     
-        // ETAPA 2: Actualización en la base de datos
+        // STAGE 2: Update the database
         const allMedia = [...existingMedia, ...newUploadedMedia];
+        
+        // Check if the current cover image URL is a temporary preview URL (blob) and update it.
+        let finalCoverImageUrl = coverImageUrl;
+        if (newFileUrlMap.has(coverImageUrl)) {
+          finalCoverImageUrl = newFileUrlMap.get(coverImageUrl)!;
+        }
         
         await updateMemory({
             id: memoryId,
@@ -121,7 +134,7 @@ const EditMemoryPage: React.FC = () => {
             description,
             location: locationText,
             media: allMedia,
-            coverImageUrl,
+            coverImageUrl: finalCoverImageUrl, // Use the final, correct cover image URL
         });
         
         navigate(`/recuerdo/${date}`);
@@ -134,10 +147,12 @@ const EditMemoryPage: React.FC = () => {
   
   const allMediaForDisplay = [
     ...existingMedia, 
-    ...newFiles.map(f => ({ id: f.file.name, url: f.previewUrl, type: f.file.type }))
+    // FIX: The file's MIME type string is mapped to the specific 'image' | 'video' | 'audio' type required by the MemoryMedia interface.
+    ...newFiles.map(f => ({ id: f.file.name, url: f.previewUrl, type: (f.file.type.startsWith('image/') ? 'image' : f.file.type.startsWith('video/') ? 'video' : 'audio') as 'image' | 'video' | 'audio' }))
   ];
   
-  const coverImageCandidates = allMediaForDisplay.filter(m => m.type.startsWith('image/'));
+  // FIX: Updated filter logic to use strict equality check with the corrected media type.
+  const coverImageCandidates = allMediaForDisplay.filter(m => m.type === 'image');
 
 
   if (isLoading) {
@@ -191,7 +206,8 @@ const EditMemoryPage: React.FC = () => {
                           const hasLoaded = loadedMedia.has(m.id);
                           return (
                             <div key={m.id} className={`relative group animate-scaleIn rounded-lg overflow-hidden ${!hasLoaded ? 'bg-secondary animate-pulse' : ''}`}>
-                                {m.type.startsWith('image/') ? (
+                                {/* FIX: Updated rendering logic to use strict equality check with the corrected media type. */}
+                                {m.type === 'image' ? (
                                     <img 
                                       src={m.url} 
                                       alt="Preview" 
