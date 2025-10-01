@@ -11,6 +11,7 @@ import EditMemoryPage from './pages/EditMemoryPage';
 import MapPage from './pages/MapPage';
 import SearchPage from './pages/SearchPage';
 import SummaryPage from './pages/SummaryPage';
+import SettingsPage from './pages/SettingsPage';
 import Header from './components/Header';
 
 interface ProtectedRouteProps {
@@ -73,6 +74,10 @@ const Main: React.FC = () => {
           <ReactRouterDOM.Route
             path="/resumen"
             element={<ProtectedRoute><SummaryPage /></ProtectedRoute>}
+          />
+           <ReactRouterDOM.Route
+            path="/ajustes"
+            element={<ProtectedRoute><SettingsPage /></ProtectedRoute>}
           />
            <ReactRouterDOM.Route path="*" element={<ReactRouterDOM.Navigate to="/" />} />
         </ReactRouterDOM.Routes>

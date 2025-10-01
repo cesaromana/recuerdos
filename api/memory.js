@@ -13,7 +13,7 @@ const formatMemoryFromRow = (row) => {
     };
 };
 
-const MEMORY_FIELDS = `id, date, title, description, "coverImageUrl", media, location, "spotifyTrackId", "spotifyTrackName", "spotifyArtistName", "spotifyAlbumImageUrl", "spotifyTrackPreviewUrl"`;
+const MEMORY_COLUMNS = `id, date, title, description, "coverImageUrl", media, location, "spotifyTrackId", "spotifyTrackName", "spotifyArtistName", "spotifyAlbumImageUrl", "spotifyTrackPreviewUrl"`;
 
 export default async function handler(request, response) {
     try {
@@ -23,7 +23,7 @@ export default async function handler(request, response) {
 
             // Get a single memory by date
             if (date) {
-                const { rows } = await sql`SELECT ${sql.unsafe(MEMORY_FIELDS)} FROM memories WHERE date = ${date};`;
+                const { rows } = await sql`SELECT id, date, title, description, "coverImageUrl", media, location, "spotifyTrackId", "spotifyTrackName", "spotifyArtistName", "spotifyAlbumImageUrl", "spotifyTrackPreviewUrl" FROM memories WHERE date = ${date};`;
                 if (rows.length === 0) {
                     return response.status(404).json({ error: 'Recuerdo no encontrado' });
                 }
@@ -33,7 +33,7 @@ export default async function handler(request, response) {
             else if (q) {
                 const searchQuery = `%${q}%`;
                 const { rows } = await sql`
-                    SELECT ${sql.unsafe(MEMORY_FIELDS)}
+                    SELECT id, date, title, description, "coverImageUrl", media, location, "spotifyTrackId", "spotifyTrackName", "spotifyArtistName", "spotifyAlbumImageUrl", "spotifyTrackPreviewUrl"
                     FROM memories 
                     WHERE title ILIKE ${searchQuery} OR description ILIKE ${searchQuery} OR location ILIKE ${searchQuery}
                     ORDER BY date DESC;
@@ -42,7 +42,7 @@ export default async function handler(request, response) {
             }
             // Get all memories
             else {
-                const { rows } = await sql`SELECT ${sql.unsafe(MEMORY_FIELDS)} FROM memories ORDER BY date DESC;`;
+                const { rows } = await sql`SELECT id, date, title, description, "coverImageUrl", media, location, "spotifyTrackId", "spotifyTrackName", "spotifyArtistName", "spotifyAlbumImageUrl", "spotifyTrackPreviewUrl" FROM memories ORDER BY date DESC;`;
                 return response.status(200).json(rows.map(formatMemoryFromRow));
             }
         }
@@ -55,32 +55,36 @@ export default async function handler(request, response) {
             const { rows } = await sql`
                 INSERT INTO memories (date, title, description, "coverImageUrl", media, location, "spotifyTrackId", "spotifyTrackName", "spotifyArtistName", "spotifyAlbumImageUrl", "spotifyTrackPreviewUrl")
                 VALUES (${date}, ${title}, ${description}, ${coverImageUrl}, ${mediaJson}::jsonb, ${finalLocation}, ${spotifyTrackId}, ${spotifyTrackName}, ${spotifyArtistName}, ${spotifyAlbumImageUrl}, ${spotifyTrackPreviewUrl})
-                RETURNING ${sql.unsafe(MEMORY_FIELDS)};
+                RETURNING id, date, title, description, "coverImageUrl", media, location, "spotifyTrackId", "spotifyTrackName", "spotifyArtistName", "spotifyAlbumImageUrl", "spotifyTrackPreviewUrl";
             `;
             return response.status(201).json(formatMemoryFromRow(rows[0]));
         }
         // Handle PUT requests (updating an existing memory)
         else if (request.method === 'PUT') {
             const { id, date, title, description, coverImageUrl, media, location, spotifyTrackId, spotifyTrackName, spotifyArtistName, spotifyAlbumImageUrl, spotifyTrackPreviewUrl } = request.body;
-            const mediaJson = media !== undefined ? JSON.stringify(media) : undefined;
-            const finalLocation = location !== undefined ? (location.trim() ? location.trim() : null) : undefined;
+            const mediaJson = JSON.stringify(media);
+            const finalLocation = location && location.trim() ? location.trim() : null;
+
+            if (!id) {
+                return response.status(400).json({ error: 'ID del recuerdo es requerido para actualizar' });
+            }
 
             const { rows } = await sql`
                 UPDATE memories
                 SET 
-                    date = COALESCE(${date}, date), 
-                    title = COALESCE(${title}, title), 
-                    description = COALESCE(${description}, description), 
-                    "coverImageUrl" = COALESCE(${coverImageUrl}, "coverImageUrl"), 
-                    media = COALESCE(${mediaJson}::jsonb, media),
-                    location = COALESCE(${finalLocation}, location),
+                    date = ${date}, 
+                    title = ${title}, 
+                    description = ${description}, 
+                    "coverImageUrl" = ${coverImageUrl}, 
+                    media = ${mediaJson}::jsonb,
+                    location = ${finalLocation},
                     "spotifyTrackId" = ${spotifyTrackId},
                     "spotifyTrackName" = ${spotifyTrackName},
                     "spotifyArtistName" = ${spotifyArtistName},
                     "spotifyAlbumImageUrl" = ${spotifyAlbumImageUrl},
                     "spotifyTrackPreviewUrl" = ${spotifyTrackPreviewUrl}
                 WHERE id = ${id}
-                RETURNING ${sql.unsafe(MEMORY_FIELDS)};
+                RETURNING id, date, title, description, "coverImageUrl", media, location, "spotifyTrackId", "spotifyTrackName", "spotifyArtistName", "spotifyAlbumImageUrl", "spotifyTrackPreviewUrl";
             `;
 
             if (rows.length === 0) {

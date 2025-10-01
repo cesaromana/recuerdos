@@ -4,7 +4,7 @@ import * as ReactRouterDOM from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import Button from './Button';
-import { Heart, Search, Map, BarChart, Plus, Sun, Moon } from './Icons';
+import { Heart, Search, Map, BarChart, Plus, Sun, Moon, Settings } from './Icons';
 import { format } from 'date-fns/format';
 import EasterEggFlower from './EasterEggFlower';
 
@@ -140,6 +140,11 @@ const Header: React.FC = () => {
           <ReactRouterDOM.Link to="/resumen" onClick={handleLinkNavigation}>
               <Button variant="ghost" size="icon" aria-label="Resúmenes" disabled={isNavigating}>
                   <BarChart className="h-5 w-5"/>
+              </Button>
+          </ReactRouterDOM.Link>
+          <ReactRouterDOM.Link to="/ajustes" onClick={handleLinkNavigation}>
+              <Button variant="ghost" size="icon" aria-label="Ajustes" disabled={isNavigating}>
+                  <Settings className="h-5 w-5"/>
               </Button>
           </ReactRouterDOM.Link>
           <Button 
