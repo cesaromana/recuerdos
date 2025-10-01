@@ -1,7 +1,6 @@
 // This is a Vercel serverless function to securely interact with the Spotify API.
 
 const SPOTIFY_CLIENT_ID = '44257ae26567422a849938b2e3586fc4';
-const SPOTIFY_CLIENT_SECRET = process.env.SPOTIFY_CLIENT_SECRET;
 
 // Simple in-memory cache for the Spotify access token.
 let token = {
@@ -9,16 +8,16 @@ let token = {
   expires: 0,
 };
 
-async function getAccessToken() {
+async function getAccessToken(clientSecret) {
   if (token.value && Date.now() < token.expires) {
     return token.value;
   }
 
-  if (!SPOTIFY_CLIENT_SECRET) {
+  if (!clientSecret) {
     throw new Error('Spotify client secret is not configured in environment variables.');
   }
 
-  const authString = Buffer.from(`${SPOTIFY_CLIENT_ID}:${SPOTIFY_CLIENT_SECRET}`).toString('base64');
+  const authString = Buffer.from(`${SPOTIFY_CLIENT_ID}:${clientSecret}`).toString('base64');
 
   const response = await fetch('https://accounts.spotify.com/api/token', {
     method: 'POST',
@@ -46,6 +45,9 @@ async function getAccessToken() {
 }
 
 export default async function handler(request, response) {
+  // Read the environment variable inside the handler to ensure the latest value is used.
+  const SPOTIFY_CLIENT_SECRET = process.env.SPOTIFY_CLIENT_SECRET;
+
   if (!SPOTIFY_CLIENT_ID || !SPOTIFY_CLIENT_SECRET) {
     console.error('Spotify API handler error: SPOTIFY_CLIENT_ID or SPOTIFY_CLIENT_SECRET is not set.');
     return response.status(500).json({ error: 'Spotify integration is not configured correctly on the server.' });
@@ -62,7 +64,7 @@ export default async function handler(request, response) {
   }
 
   try {
-    const accessToken = await getAccessToken();
+    const accessToken = await getAccessToken(SPOTIFY_CLIENT_SECRET);
     
     const searchUrl = `https://api.spotify.com/v1/search?q=${encodeURIComponent(q)}&type=track&limit=10&market=US`;
     
