@@ -10,11 +10,20 @@ import Button from '../components/Button';
 import Input from '../components/Input';
 import Textarea from '../components/Textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '../components/Card';
-import { UploadCloud, ChevronLeft } from '../components/Icons';
+import { UploadCloud, ChevronLeft, LoadingSpinner, X, Music } from '../components/Icons';
+import SpotifySearchModal from '../components/SpotifySearchModal';
 
 interface UploadedFile {
   file: File;
   previewUrl: string;
+}
+
+interface SpotifyTrack {
+    id: string;
+    name: string;
+    artists: string;
+    albumImageUrl: string;
+    previewUrl?: string;
 }
 
 const CreateMemoryPage: React.FC = () => {
@@ -35,6 +44,9 @@ const CreateMemoryPage: React.FC = () => {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isNavigating, setIsNavigating] = useState(false);
 
+  const [selectedTrack, setSelectedTrack] = useState<SpotifyTrack | null>(null);
+  const [isSpotifyModalOpen, setIsSpotifyModalOpen] = useState(false);
+
 
   useEffect(() => {
     return () => {
@@ -47,7 +59,7 @@ const CreateMemoryPage: React.FC = () => {
       setIsNavigating(false);
     }
   }, [location]);
-
+  
   const handleBackNavigation = () => {
     if (isNavigating) return;
     setIsNavigating(true);
@@ -94,6 +106,7 @@ const CreateMemoryPage: React.FC = () => {
     event.stopPropagation();
   };
 
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title || !description || files.length === 0 || coverImageIndex === null) {
@@ -134,7 +147,12 @@ const CreateMemoryPage: React.FC = () => {
           description, 
           media: uploadedMedia, 
           coverImageUrl,
-          location: locationText
+          location: locationText,
+          spotifyTrackId: selectedTrack?.id,
+          spotifyTrackName: selectedTrack?.name,
+          spotifyArtistName: selectedTrack?.artists,
+          spotifyAlbumImageUrl: selectedTrack?.albumImageUrl,
+          spotifyTrackPreviewUrl: selectedTrack?.previewUrl,
       });
       
       navigate('/');
@@ -147,109 +165,141 @@ const CreateMemoryPage: React.FC = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto animate-slideInUp">
-      <Button 
-        variant="ghost" 
-        onClick={handleBackNavigation}
-        disabled={isNavigating}
-        className="mb-6 inline-flex items-center gap-2 text-sm font-medium text-foreground/70 hover:text-foreground"
-      >
-        <ChevronLeft className="w-4 h-4" />
-        Volver
-      </Button>
-      <form onSubmit={handleSubmit}>
-        <Card className="border-none">
-          <CardHeader>
-            <CardTitle>Añadir un nuevo recuerdo</CardTitle>
-            <CardDescription>
-              Completa los detalles de este día especial. La fecha seleccionada es {format(new Date(date.replace(/-/g, '/')), 'dd MMMM, yyyy', { locale: es })}.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <label htmlFor="title" className="font-medium text-foreground/90">Título</label>
-                <Input id="title" value={title} onChange={e => setTitle(e.target.value)} placeholder="Ej: Nuestra primera caminata" required />
-              </div>
-              <div className="space-y-2">
-                <label htmlFor="date" className="font-medium text-foreground/90">Fecha</label>
-                <Input id="date" type="date" value={date} onChange={e => setDate(e.target.value)} required />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <label htmlFor="description" className="font-medium text-foreground/90">Descripción</label>
-              <Textarea id="description" value={description} onChange={e => setDescription(e.target.value)} placeholder="Describe lo que hicieron, cómo se sintieron..." rows={6} required />
-            </div>
-            <div className="space-y-2">
-                <label htmlFor="location" className="font-medium text-foreground/90">Ubicación (Opcional)</label>
-                <Input id="location" value={locationText} onChange={e => setLocationText(e.target.value)} placeholder="Ej: Parque Central, Ciudad" />
-            </div>
-            <div className="space-y-2">
-                <label className="font-medium text-foreground/90">Fotos y Videos</label>
-                <div 
-                    className="flex justify-center items-center flex-col w-full p-8 border-2 border-dashed border-input rounded-lg cursor-pointer transition-colors hover:bg-secondary hover:border-accent"
-                    onClick={() => fileInputRef.current?.click()}
-                    onDrop={handleFileDrop}
-                    onDragOver={handleDragOver}
-                >
-                    <UploadCloud className="w-10 h-10 text-muted-foreground mb-3"/>
-                    <p className="font-semibold text-foreground/80">Haz clic o arrastra archivos aquí</p>
-                    <p className="text-sm text-muted-foreground">Sube imágenes, GIFs o videos</p>
-                    <input type="file" ref={fileInputRef} onChange={handleFileChange} multiple className="hidden" accept="image/*,video/*,audio/*"/>
+    <>
+      <div className="max-w-4xl mx-auto animate-slideInUp">
+        <Button 
+          variant="ghost" 
+          onClick={handleBackNavigation}
+          disabled={isNavigating}
+          className="mb-6 inline-flex items-center gap-2 text-sm font-medium text-foreground/70 hover:text-foreground"
+        >
+          <ChevronLeft className="w-4 h-4" />
+          Volver
+        </Button>
+        <form onSubmit={handleSubmit}>
+          <Card className="border-none">
+            <CardHeader>
+              <CardTitle>Añadir un nuevo recuerdo</CardTitle>
+              <CardDescription>
+                Completa los detalles de este día especial. La fecha seleccionada es {format(new Date(date.replace(/-/g, '/')), 'dd MMMM, yyyy', { locale: es })}.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <label htmlFor="title" className="font-medium text-foreground/90">Título</label>
+                  <Input id="title" value={title} onChange={e => setTitle(e.target.value)} placeholder="Ej: Nuestra primera caminata" required />
                 </div>
-            </div>
-            {files.length > 0 && (
-                <div className="space-y-4">
-                  <p className="font-medium text-foreground/90">Archivos subidos:</p>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                      {files.map((f, index) => (
-                          <div key={index} className="relative group animate-scaleIn rounded-lg overflow-hidden">
-                              {f.file.type.startsWith('image/') ? (
-                                  <img src={f.previewUrl} alt="Preview" className="w-full h-32 object-cover" />
-                              ) : (
-                                  <video src={f.previewUrl} muted loop autoPlay playsInline className="w-full h-32 object-cover" />
-                              )}
+                <div className="space-y-2">
+                  <label htmlFor="date" className="font-medium text-foreground/90">Fecha</label>
+                  <Input id="date" type="date" value={date} onChange={e => setDate(e.target.value)} required />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label htmlFor="description" className="font-medium text-foreground/90">Descripción</label>
+                <Textarea id="description" value={description} onChange={e => setDescription(e.target.value)} placeholder="Describe lo que hicieron, cómo se sintieron..." rows={6} required />
+              </div>
+              <div className="space-y-2">
+                  <label htmlFor="location" className="font-medium text-foreground/90">Ubicación (Opcional)</label>
+                  <Input id="location" value={locationText} onChange={e => setLocationText(e.target.value)} placeholder="Ej: Parque Central, Ciudad" />
+              </div>
+
+              <div className="space-y-2">
+                  <label className="font-medium text-foreground/90">Canción del Recuerdo (Opcional)</label>
+                  {selectedTrack ? (
+                      <div className="flex items-center gap-4 p-3 bg-secondary rounded-lg">
+                          <img src={selectedTrack.albumImageUrl} alt={selectedTrack.name} className="w-14 h-14 rounded-md object-cover" />
+                          <div className="flex-grow min-w-0">
+                              <p className="font-semibold text-foreground truncate">{selectedTrack.name}</p>
+                              <p className="text-sm text-muted-foreground truncate">{selectedTrack.artists}</p>
                           </div>
-                      ))}
+                          <Button variant="ghost" size="icon" onClick={() => setSelectedTrack(null)}>
+                              <X className="w-5 h-5" />
+                          </Button>
+                      </div>
+                  ) : (
+                      <Button variant="outline" type="button" onClick={() => setIsSpotifyModalOpen(true)} className="w-full justify-start text-muted-foreground hover:text-foreground">
+                          <Music className="w-5 h-5 mr-3 flex-shrink-0" />
+                          Añadir canción...
+                      </Button>
+                  )}
+              </div>
+              
+              <div className="space-y-2">
+                  <label className="font-medium text-foreground/90">Fotos y Videos</label>
+                  <div 
+                      className="flex justify-center items-center flex-col w-full p-8 border-2 border-dashed border-input rounded-lg cursor-pointer transition-colors hover:bg-secondary hover:border-accent"
+                      onClick={() => fileInputRef.current?.click()}
+                      onDrop={handleFileDrop}
+                      onDragOver={handleDragOver}
+                  >
+                      <UploadCloud className="w-10 h-10 text-muted-foreground mb-3"/>
+                      <p className="font-semibold text-foreground/80">Haz clic o arrastra archivos aquí</p>
+                      <p className="text-sm text-muted-foreground">Sube imágenes, GIFs o videos</p>
+                      <input type="file" ref={fileInputRef} onChange={handleFileChange} multiple className="hidden" accept="image/*,video/*,audio/*"/>
+                  </div>
+              </div>
+              {files.length > 0 && (
+                  <div className="space-y-4">
+                    <p className="font-medium text-foreground/90">Archivos subidos:</p>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                        {files.map((f, index) => (
+                            <div key={index} className="relative group animate-scaleIn rounded-lg overflow-hidden">
+                                {f.file.type.startsWith('image/') ? (
+                                    <img src={f.previewUrl} alt="Preview" className="w-full h-32 object-cover" />
+                                ) : (
+                                    <video src={f.previewUrl} muted loop autoPlay playsInline className="w-full h-32 object-cover" />
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                  </div>
+              )}
+              {files.some(f => f.file.type.startsWith('image/')) && (
+                <div className="space-y-4">
+                  <p className="font-medium text-foreground/90">Elige la imagen de portada (solo imágenes fijas):</p>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                    {files.map((f, index) => f.file.type.startsWith('image/') && (
+                      <div key={index} className="relative cursor-pointer group animate-scaleIn" onClick={() => setCoverImageIndex(index)}>
+                        <img src={f.previewUrl} alt="Preview" className={`w-full h-32 object-cover rounded-lg transition-all ${coverImageIndex === index ? 'ring-4 ring-accent ring-offset-2' : 'group-hover:opacity-80'}`} />
+                        {coverImageIndex === index && (
+                          <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-lg">
+                            <span className="text-white font-bold text-sm">Portada</span>
+                          </div>
+                        )}
+                      </div>
+                    ))}
                   </div>
                 </div>
-            )}
-            {files.some(f => f.file.type.startsWith('image/')) && (
-              <div className="space-y-4">
-                <p className="font-medium text-foreground/90">Elige la imagen de portada (solo imágenes fijas):</p>
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                  {files.map((f, index) => f.file.type.startsWith('image/') && (
-                    <div key={index} className="relative cursor-pointer group animate-scaleIn" onClick={() => setCoverImageIndex(index)}>
-                      <img src={f.previewUrl} alt="Preview" className={`w-full h-32 object-cover rounded-lg transition-all ${coverImageIndex === index ? 'ring-4 ring-accent ring-offset-2' : 'group-hover:opacity-80'}`} />
-                      {coverImageIndex === index && (
-                        <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-lg">
-                          <span className="text-white font-bold text-sm">Portada</span>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
+              )}
+            </CardContent>
+            <CardFooter>
+              <div className="w-full flex items-center justify-end">
+                  {isSaving && (
+                      <div className="w-full max-w-xs mr-4">
+                          <p className="text-sm text-muted-foreground mb-1 text-right">{`Subiendo ${Math.round(uploadProgress)}%`}</p>
+                          <div className="w-full bg-secondary rounded-full h-2">
+                              <div className="bg-accent h-2 rounded-full transition-all" style={{ width: `${uploadProgress}%` }}></div>
+                          </div>
+                      </div>
+                  )}
+                  <Button type="submit" disabled={isSaving} className="w-full md:w-auto bg-accent text-accent-foreground hover:bg-accent/90">
+                  {isSaving ? 'Guardando...' : 'Guardar Recuerdo'}
+                  </Button>
               </div>
-            )}
-          </CardContent>
-          <CardFooter>
-            <div className="w-full flex items-center justify-end">
-                {isSaving && (
-                    <div className="w-full max-w-xs mr-4">
-                        <p className="text-sm text-muted-foreground mb-1 text-right">{`Subiendo ${Math.round(uploadProgress)}%`}</p>
-                        <div className="w-full bg-secondary rounded-full h-2">
-                            <div className="bg-accent h-2 rounded-full transition-all" style={{ width: `${uploadProgress}%` }}></div>
-                        </div>
-                    </div>
-                )}
-                <Button type="submit" disabled={isSaving} className="w-full md:w-auto bg-accent text-accent-foreground hover:bg-accent/90">
-                {isSaving ? 'Guardando...' : 'Guardar Recuerdo'}
-                </Button>
-            </div>
-          </CardFooter>
-        </Card>
-      </form>
-    </div>
+            </CardFooter>
+          </Card>
+        </form>
+      </div>
+      <SpotifySearchModal
+          isOpen={isSpotifyModalOpen}
+          onClose={() => setIsSpotifyModalOpen(false)}
+          onTrackSelect={(track) => {
+              setSelectedTrack(track);
+              setIsSpotifyModalOpen(false);
+          }}
+      />
+    </>
   );
 };
 

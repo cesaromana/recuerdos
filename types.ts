@@ -1,4 +1,5 @@
 
+
 export interface MemoryMedia {
   id: string;
   url: string;
@@ -13,4 +14,9 @@ export interface Memory {
   media: MemoryMedia[];
   coverImageUrl: string;
   location?: string;
+  spotifyTrackId?: string;
+  spotifyTrackName?: string;
+  spotifyArtistName?: string;
+  spotifyAlbumImageUrl?: string;
+  spotifyTrackPreviewUrl?: string;
 }

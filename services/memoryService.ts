@@ -10,6 +10,11 @@ interface NewMemoryData {
     media: MemoryMedia[];
     coverImageUrl: string;
     location?: string;
+    spotifyTrackId?: string;
+    spotifyTrackName?: string;
+    spotifyArtistName?: string;
+    spotifyAlbumImageUrl?: string;
+    spotifyTrackPreviewUrl?: string;
 }
 
 export interface UpdateMemoryData extends Partial<NewMemoryData> {

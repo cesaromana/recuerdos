@@ -13,6 +13,8 @@ const formatMemoryFromRow = (row) => {
     };
 };
 
+const MEMORY_FIELDS = `id, date, title, description, "coverImageUrl", media, location, "spotifyTrackId", "spotifyTrackName", "spotifyArtistName", "spotifyAlbumImageUrl", "spotifyTrackPreviewUrl"`;
+
 export default async function handler(request, response) {
     try {
         // Handle GET requests (fetching all, one by date, or searching)
@@ -21,7 +23,7 @@ export default async function handler(request, response) {
 
             // Get a single memory by date
             if (date) {
-                const { rows } = await sql`SELECT id, date, title, description, "coverImageUrl", media, location FROM memories WHERE date = ${date};`;
+                const { rows } = await sql`SELECT ${sql.unsafe(MEMORY_FIELDS)} FROM memories WHERE date = ${date};`;
                 if (rows.length === 0) {
                     return response.status(404).json({ error: 'Recuerdo no encontrado' });
                 }
@@ -31,7 +33,7 @@ export default async function handler(request, response) {
             else if (q) {
                 const searchQuery = `%${q}%`;
                 const { rows } = await sql`
-                    SELECT id, date, title, description, "coverImageUrl", media, location
+                    SELECT ${sql.unsafe(MEMORY_FIELDS)}
                     FROM memories 
                     WHERE title ILIKE ${searchQuery} OR description ILIKE ${searchQuery} OR location ILIKE ${searchQuery}
                     ORDER BY date DESC;
@@ -40,26 +42,26 @@ export default async function handler(request, response) {
             }
             // Get all memories
             else {
-                const { rows } = await sql`SELECT id, date, title, description, "coverImageUrl", media, location FROM memories ORDER BY date DESC;`;
+                const { rows } = await sql`SELECT ${sql.unsafe(MEMORY_FIELDS)} FROM memories ORDER BY date DESC;`;
                 return response.status(200).json(rows.map(formatMemoryFromRow));
             }
         }
         // Handle POST requests (adding a new memory)
         else if (request.method === 'POST') {
-            const { date, title, description, media, coverImageUrl, location } = request.body; // Vercel parses the body automatically
+            const { date, title, description, media, coverImageUrl, location, spotifyTrackId, spotifyTrackName, spotifyArtistName, spotifyAlbumImageUrl, spotifyTrackPreviewUrl } = request.body;
             const mediaJson = JSON.stringify(media);
             const finalLocation = location && location.trim() ? location.trim() : null;
 
             const { rows } = await sql`
-                INSERT INTO memories (date, title, description, "coverImageUrl", media, location)
-                VALUES (${date}, ${title}, ${description}, ${coverImageUrl}, ${mediaJson}::jsonb, ${finalLocation})
-                RETURNING id, date, title, description, "coverImageUrl", media, location;
+                INSERT INTO memories (date, title, description, "coverImageUrl", media, location, "spotifyTrackId", "spotifyTrackName", "spotifyArtistName", "spotifyAlbumImageUrl", "spotifyTrackPreviewUrl")
+                VALUES (${date}, ${title}, ${description}, ${coverImageUrl}, ${mediaJson}::jsonb, ${finalLocation}, ${spotifyTrackId}, ${spotifyTrackName}, ${spotifyArtistName}, ${spotifyAlbumImageUrl}, ${spotifyTrackPreviewUrl})
+                RETURNING ${sql.unsafe(MEMORY_FIELDS)};
             `;
             return response.status(201).json(formatMemoryFromRow(rows[0]));
         }
         // Handle PUT requests (updating an existing memory)
         else if (request.method === 'PUT') {
-            const { id, date, title, description, coverImageUrl, media, location } = request.body; // Vercel parses the body automatically
+            const { id, date, title, description, coverImageUrl, media, location, spotifyTrackId, spotifyTrackName, spotifyArtistName, spotifyAlbumImageUrl, spotifyTrackPreviewUrl } = request.body;
             const mediaJson = media !== undefined ? JSON.stringify(media) : undefined;
             const finalLocation = location !== undefined ? (location.trim() ? location.trim() : null) : undefined;
 
@@ -71,9 +73,14 @@ export default async function handler(request, response) {
                     description = COALESCE(${description}, description), 
                     "coverImageUrl" = COALESCE(${coverImageUrl}, "coverImageUrl"), 
                     media = COALESCE(${mediaJson}::jsonb, media),
-                    location = COALESCE(${finalLocation}, location)
+                    location = COALESCE(${finalLocation}, location),
+                    "spotifyTrackId" = ${spotifyTrackId},
+                    "spotifyTrackName" = ${spotifyTrackName},
+                    "spotifyArtistName" = ${spotifyArtistName},
+                    "spotifyAlbumImageUrl" = ${spotifyAlbumImageUrl},
+                    "spotifyTrackPreviewUrl" = ${spotifyTrackPreviewUrl}
                 WHERE id = ${id}
-                RETURNING id, date, title, description, "coverImageUrl", media, location;
+                RETURNING ${sql.unsafe(MEMORY_FIELDS)};
             `;
 
             if (rows.length === 0) {

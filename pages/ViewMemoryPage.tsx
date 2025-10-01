@@ -6,7 +6,8 @@ import type { Memory, MemoryMedia } from '../types';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale/es';
 import Button from '../components/Button';
-import { ChevronLeft, LoadingSpinner, Edit, Trash, MapPin, X, ChevronRight } from '../components/Icons';
+import { ChevronLeft, LoadingSpinner, Edit, Trash, MapPin, X, ChevronRight, Music } from '../components/Icons';
+import SpotifyPlayer from '../components/SpotifyPlayer';
 
 const MediaViewer: React.FC<{
   media: MemoryMedia[];
@@ -206,7 +207,7 @@ const ViewMemoryPage: React.FC = () => {
           <aside className="mt-8 lg:mt-0">
               <div className="bg-secondary p-6 rounded-2xl sticky top-28">
                   <h3 className="font-serif font-bold text-xl mb-4">Detalles</h3>
-                  <ul className="space-y-3">
+                  <ul className="space-y-4">
                       {memory.location && (
                           <li className="flex items-start gap-3">
                               <MapPin className="w-5 h-5 mt-1 text-accent flex-shrink-0"/>
@@ -214,6 +215,17 @@ const ViewMemoryPage: React.FC = () => {
                                   {memory.location}
                               </a>
                           </li>
+                      )}
+                      {memory.spotifyTrackId && (
+                        <li>
+                          <div className="flex items-start gap-3">
+                            <Music className="w-5 h-5 mt-1 text-accent flex-shrink-0"/>
+                            <p className="text-foreground/80">Canción del recuerdo</p>
+                          </div>
+                          <div className="mt-3">
+                            <SpotifyPlayer trackId={memory.spotifyTrackId} />
+                          </div>
+                        </li>
                       )}
                   </ul>
               </div>
