@@ -42,7 +42,7 @@ const MediaViewer: React.FC<{
         {currentItem.type === 'image' ? (
           <img src={currentItem.url} alt="Vista ampliada" className="w-full h-full object-contain" />
         ) : (
-          <video src={currentItem.url} controls autoPlay className="w-full h-full object-contain" />
+          <video src={currentItem.url} controls autoPlay preload="metadata" className="w-full h-full object-contain" />
         )}
       </div>
        <Button variant="ghost" size="icon" className="absolute top-4 right-4 text-white hover:text-white" onClick={onClose}>
@@ -261,6 +261,7 @@ const ViewMemoryPage: React.FC = () => {
                                     muted 
                                     autoPlay 
                                     playsInline 
+                                    preload="metadata"
                                     onCanPlay={() => handleGalleryItemLoad(m.id)}
                                     className={`w-full h-auto object-cover transition-all duration-500 group-hover:scale-110 ${hasLoaded ? 'opacity-100' : 'opacity-0'}`}
                                  />
