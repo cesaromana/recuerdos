@@ -6,7 +6,7 @@ import type { Memory, MemoryMedia } from '../types';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale/es';
 import Button from '../components/Button';
-import { ChevronLeft, LoadingSpinner, Edit, Trash, MapPin, X, ChevronRight, Music } from '../components/Icons';
+import { ChevronLeft, LoadingSpinner, Edit, Trash, MapPin, X, ChevronRight, Music, Play } from '../components/Icons';
 import SpotifyPlayer from '../components/SpotifyPlayer';
 
 const MediaViewer: React.FC<{
@@ -255,16 +255,18 @@ const ViewMemoryPage: React.FC = () => {
                                     className={`w-full h-auto object-cover transition-all duration-500 group-hover:scale-110 ${hasLoaded ? 'opacity-100' : 'opacity-0'}`}
                                  />
                               ) : (
-                                 <video 
-                                    src={m.url} 
-                                    loop 
-                                    muted 
-                                    autoPlay 
-                                    playsInline 
-                                    preload="metadata"
-                                    onCanPlay={() => handleGalleryItemLoad(m.id)}
-                                    className={`w-full h-auto object-cover transition-all duration-500 group-hover:scale-110 ${hasLoaded ? 'opacity-100' : 'opacity-0'}`}
-                                 />
+                                <div className="relative">
+                                  <video 
+                                      src={m.url} 
+                                      playsInline 
+                                      preload="metadata"
+                                      onLoadedData={() => handleGalleryItemLoad(m.id)}
+                                      className={`w-full h-auto object-cover transition-all duration-500 group-hover:scale-110 ${hasLoaded ? 'opacity-100' : 'opacity-0'}`}
+                                  />
+                                  <div className="absolute inset-0 flex items-center justify-center bg-black/10 transition-colors group-hover:bg-black/30 pointer-events-none">
+                                      <Play className="w-10 h-10 text-white drop-shadow-md" />
+                                  </div>
+                                </div>
                               )}
                             </div>
                         )
